@@ -1,13 +1,13 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo pintar tarjetas dinámicas con JavaScript a partir de arrays"
+Prompt 1: "Cómo pintar tarjetas dinámicas con JavaScript a partir de datos obtenidos desde un módulo"
 Prompt 2: "Cómo mostrar ofertas y demandas en un dashboard con Bootstrap"
 Prompt 3: "Cómo crear tarjetas visuales con imágenes placeholder en JavaScript"
 Prompt 4: "Cómo mostrar usuario logueado y botón cerrar sesión en la navbar"
 */
 
-import { ofertas, demandas } from "./datos.js";
+import { obtenerOfertas, obtenerDemandas } from "./almacenaje.js";
 
 const contenedor = document.getElementById("contenedor-tarjetas");
 
@@ -39,11 +39,16 @@ function actualizarNavbar() {
 
 function cerrarSesion() {
     sessionStorage.removeItem("usuarioLogueado");
+    sessionStorage.removeItem("nombreUsuario");
+    sessionStorage.removeItem("rolUsuario");
     window.location.href = "login.html";
 }
 
 function pintarTarjetas() {
     if (!contenedor) return;
+
+    const ofertas = obtenerOfertas();
+    const demandas = obtenerDemandas();
 
     let html = "";
 

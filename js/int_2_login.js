@@ -1,13 +1,13 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo validar un login en JavaScript usando un array de usuarios"
+Prompt 1: "Cómo validar un login en JavaScript usando funciones de un módulo almacenaje.js"
 Prompt 2: "Cómo usar addEventListener en un formulario de login"
 Prompt 3: "Cómo guardar datos de sesión con sessionStorage"
 Prompt 4: "Cómo mostrar el correo del usuario logueado en la navbar de una app frontend"
 */
 
-import { usuarios } from "./datos.js";
+import { validarLogin } from "./almacenaje.js";
 
 const formularioLogin = document.getElementById("form-login");
 const inputEmail = document.getElementById("email");
@@ -57,6 +57,8 @@ function actualizarNavbar() {
 
 function cerrarSesion() {
     sessionStorage.removeItem("usuarioLogueado");
+    sessionStorage.removeItem("nombreUsuario");
+    sessionStorage.removeItem("rolUsuario");
     window.location.href = "login.html";
 }
 
@@ -71,9 +73,7 @@ function iniciarSesion(evento) {
         return;
     }
 
-    const usuarioEncontrado = usuarios.find(
-        (usuario) => usuario.email === email && usuario.password === password
-    );
+    const usuarioEncontrado = validarLogin(email, password);
 
     if (!usuarioEncontrado) {
         mostrarMensaje("Correo o contraseña incorrectos.", "error");
@@ -81,6 +81,8 @@ function iniciarSesion(evento) {
     }
 
     sessionStorage.setItem("usuarioLogueado", usuarioEncontrado.email);
+    sessionStorage.setItem("nombreUsuario", usuarioEncontrado.nombre);
+    sessionStorage.setItem("rolUsuario", usuarioEncontrado.rol);
 
     mostrarMensaje(`Bienvenido, ${usuarioEncontrado.nombre}.`, "ok");
     actualizarNavbar();

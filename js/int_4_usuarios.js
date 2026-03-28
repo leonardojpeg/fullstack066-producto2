@@ -1,13 +1,17 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo crear usuarios en JavaScript a partir de un formulario HTML"
+Prompt 1: "Cómo crear usuarios en JavaScript a partir de un formulario HTML usando un módulo almacenaje.js"
 Prompt 2: "Cómo listar usuarios dinámicamente en una tabla con Bootstrap"
-Prompt 3: "Cómo eliminar elementos de un array usando JavaScript"
+Prompt 3: "Cómo eliminar usuarios usando funciones de un módulo JavaScript"
 Prompt 4: "Cómo usar addEventListener para registrar eventos de formulario y botones"
 */
 
-import { usuarios } from "./datos.js";
+import {
+    obtenerUsuarios,
+    crearUsuario,
+    eliminarUsuario
+} from "./almacenaje.js";
 
 const formularioUsuario = document.getElementById("form-usuario");
 const inputNombre = document.getElementById("nombre");
@@ -45,6 +49,8 @@ function actualizarNavbar() {
 
 function cerrarSesion() {
     sessionStorage.removeItem("usuarioLogueado");
+    sessionStorage.removeItem("nombreUsuario");
+    sessionStorage.removeItem("rolUsuario");
     window.location.href = "login.html";
 }
 
@@ -63,17 +69,10 @@ function mostrarMensaje(texto, tipo) {
     }
 }
 
-function obtenerNuevoId(array) {
-    if (array.length === 0) {
-        return 1;
-    }
-
-    const ids = array.map((elemento) => elemento.id);
-    return Math.max(...ids) + 1;
-}
-
 function pintarUsuarios() {
     if (!contenedorUsuarios) return;
+
+    const usuarios = obtenerUsuarios();
 
     let html = "";
 
@@ -103,22 +102,18 @@ function registrarEventosEliminar() {
     botonesEliminar.forEach((boton) => {
         boton.addEventListener("click", () => {
             const id = Number(boton.dataset.id);
-            eliminarUsuario(id);
+            gestionarEliminacionUsuario(id);
         });
     });
 }
 
-function eliminarUsuario(id) {
-    const indice = usuarios.findIndex((usuario) => usuario.id === id);
-
-    if (indice !== -1) {
-        usuarios.splice(indice, 1);
-        pintarUsuarios();
-        mostrarMensaje("Usuario eliminado correctamente.", "ok");
-    }
+function gestionarEliminacionUsuario(id) {
+    eliminarUsuario(id);
+    pintarUsuarios();
+    mostrarMensaje("Usuario eliminado correctamente.", "ok");
 }
 
-function crearUsuario(evento) {
+function gestionarCreacionUsuario(evento) {
     evento.preventDefault();
 
     const nombre = inputNombre.value.trim();
@@ -131,6 +126,7 @@ function crearUsuario(evento) {
         return;
     }
 
+    const usuarios = obtenerUsuarios();
     const emailRepetido = usuarios.some((usuario) => usuario.email === email);
 
     if (emailRepetido) {
@@ -138,8 +134,7 @@ function crearUsuario(evento) {
         return;
     }
 
-    usuarios.push({
-        id: obtenerNuevoId(usuarios),
+    crearUsuario({
         nombre,
         email,
         password,
@@ -157,7 +152,7 @@ function crearUsuario(evento) {
 actualizarNavbar();
 
 if (formularioUsuario) {
-    formularioUsuario.addEventListener("submit", crearUsuario);
+    formularioUsuario.addEventListener("submit", gestionarCreacionUsuario);
 }
 
 pintarUsuarios();

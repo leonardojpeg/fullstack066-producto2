@@ -1,13 +1,20 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo crear y renderizar ofertas y demandas con JavaScript y arrays"
-Prompt 2: "Cómo usar un formulario para añadir elementos a un array en JavaScript"
-Prompt 3: "Cómo eliminar tarjetas dinámicas con addEventListener y data attributes"
+Prompt 1: "Cómo crear y renderizar ofertas y demandas con JavaScript usando un módulo almacenaje.js"
+Prompt 2: "Cómo usar un formulario para añadir ofertas y demandas en JavaScript"
+Prompt 3: "Cómo eliminar tarjetas dinámicas con addEventListener y funciones de almacenaje"
 Prompt 4: "Cómo mostrar ofertas y demandas con estilos diferentes usando Bootstrap"
 */
 
-import { ofertas, demandas } from "./datos.js";
+import {
+    obtenerOfertas,
+    obtenerDemandas,
+    crearEmpleo,
+    crearPublicacion,
+    eliminarEmpleo,
+    eliminarPublicacion
+} from "./almacenaje.js";
 
 const formularioOferta = document.getElementById("form-oferta");
 const inputTipo = document.getElementById("tipo");
@@ -47,6 +54,8 @@ function actualizarNavbar() {
 
 function cerrarSesion() {
     sessionStorage.removeItem("usuarioLogueado");
+    sessionStorage.removeItem("nombreUsuario");
+    sessionStorage.removeItem("rolUsuario");
     window.location.href = "login.html";
 }
 
@@ -65,15 +74,6 @@ function mostrarMensaje(texto, tipo) {
     }
 }
 
-function obtenerNuevoId(array) {
-    if (array.length === 0) {
-        return 1;
-    }
-
-    const ids = array.map((elemento) => elemento.id);
-    return Math.max(...ids) + 1;
-}
-
 function pintarPublicaciones() {
     pintarTarjetas();
     pintarTabla();
@@ -82,6 +82,9 @@ function pintarPublicaciones() {
 
 function pintarTarjetas() {
     if (!contenedorOfertas) return;
+
+    const ofertas = obtenerOfertas();
+    const demandas = obtenerDemandas();
 
     let html = "";
 
@@ -134,6 +137,9 @@ function pintarTarjetas() {
 
 function pintarTabla() {
     if (!tablaOfertas) return;
+
+    const ofertas = obtenerOfertas();
+    const demandas = obtenerDemandas();
 
     let html = "";
 
@@ -196,26 +202,18 @@ function registrarEventosEliminar() {
 }
 
 function eliminarOferta(id) {
-    const indice = ofertas.findIndex((oferta) => oferta.id === id);
-
-    if (indice !== -1) {
-        ofertas.splice(indice, 1);
-        pintarPublicaciones();
-        mostrarMensaje("Oferta eliminada correctamente.", "ok");
-    }
+    eliminarEmpleo(id);
+    pintarPublicaciones();
+    mostrarMensaje("Oferta eliminada correctamente.", "ok");
 }
 
 function eliminarDemanda(id) {
-    const indice = demandas.findIndex((demanda) => demanda.id === id);
-
-    if (indice !== -1) {
-        demandas.splice(indice, 1);
-        pintarPublicaciones();
-        mostrarMensaje("Demanda eliminada correctamente.", "ok");
-    }
+    eliminarPublicacion(id);
+    pintarPublicaciones();
+    mostrarMensaje("Demanda eliminada correctamente.", "ok");
 }
 
-function crearPublicacion(evento) {
+function gestionarCreacionPublicacion(evento) {
     evento.preventDefault();
 
     const tipo = inputTipo.value.trim();
@@ -230,22 +228,22 @@ function crearPublicacion(evento) {
     }
 
     if (tipo === "oferta") {
-        ofertas.push({
-            id: obtenerNuevoId(ofertas),
-            titulo,
-            empresa,
-            ubicacion,
-            descripcion
+        crearEmpleo({
+            empresaId: 3,
+            empresa: empresa,
+            titulo: titulo,
+            ubicacion: ubicacion,
+            descripcion: descripcion
         });
 
         mostrarMensaje("Oferta creada correctamente.", "ok");
     } else if (tipo === "demanda") {
-        demandas.push({
-            id: obtenerNuevoId(demandas),
+        crearPublicacion({
+            usuarioId: 2,
             nombre: titulo,
             profesion: empresa,
             disponibilidad: ubicacion,
-            descripcion
+            descripcion: descripcion
         });
 
         mostrarMensaje("Demanda creada correctamente.", "ok");
@@ -264,7 +262,7 @@ function crearPublicacion(evento) {
 actualizarNavbar();
 
 if (formularioOferta) {
-    formularioOferta.addEventListener("submit", crearPublicacion);
+    formularioOferta.addEventListener("submit", gestionarCreacionPublicacion);
 }
 
 pintarPublicaciones();
