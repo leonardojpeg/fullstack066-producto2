@@ -1,16 +1,19 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo crear usuarios en JavaScript a partir de un formulario HTML usando un módulo almacenaje.js"
-Prompt 2: "Cómo listar usuarios dinámicamente en una tabla con Bootstrap"
-Prompt 3: "Cómo eliminar usuarios usando funciones de un módulo JavaScript"
-Prompt 4: "Cómo usar addEventListener para registrar eventos de formulario y botones"
+Adaptación de int_4_usuarios.js para Producto 2:
+- usuarios persistidos en localStorage mediante almacenaje.js
+- navbar conectada al usuario activo del módulo
+- inicialización modular
 */
 
 import {
+    inicializarAlmacenaje,
     obtenerUsuarios,
     crearUsuario,
-    eliminarUsuario
+    eliminarUsuario,
+    obtenerUsuarioActivo,
+    cerrarSesion
 } from "./almacenaje.js";
 
 const formularioUsuario = document.getElementById("form-usuario");
@@ -20,39 +23,6 @@ const inputPasswordUsuario = document.getElementById("password-usuario");
 const inputRolUsuario = document.getElementById("rol-usuario");
 const mensajeUsuario = document.getElementById("mensaje-usuario");
 const contenedorUsuarios = document.getElementById("contenedor-usuarios");
-
-function actualizarNavbar() {
-    const zonaSesion = document.getElementById("zona-sesion");
-    const emailGuardado = sessionStorage.getItem("usuarioLogueado");
-
-    if (!zonaSesion) return;
-
-    if (emailGuardado) {
-        zonaSesion.innerHTML = `
-            <span class="nav-link mb-0">${emailGuardado}</span>
-            <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
-                Cerrar sesión
-            </button>
-        `;
-
-        const botonLogout = document.getElementById("btn-logout");
-
-        if (botonLogout) {
-            botonLogout.addEventListener("click", cerrarSesion);
-        }
-    } else {
-        zonaSesion.innerHTML = `
-            <a class="nav-link" href="login.html">Login</a>
-        `;
-    }
-}
-
-function cerrarSesion() {
-    sessionStorage.removeItem("usuarioLogueado");
-    sessionStorage.removeItem("nombreUsuario");
-    sessionStorage.removeItem("rolUsuario");
-    window.location.href = "login.html";
-}
 
 function mostrarMensaje(texto, tipo) {
     if (!mensajeUsuario) return;
@@ -67,6 +37,37 @@ function mostrarMensaje(texto, tipo) {
     if (tipo === "ok") {
         mensajeUsuario.classList.add("mensaje-ok");
     }
+}
+
+function actualizarNavbar() {
+    const zonaSesion = document.getElementById("zona-sesion");
+    const usuarioActivo = obtenerUsuarioActivo();
+
+    if (!zonaSesion) return;
+
+    if (usuarioActivo) {
+        zonaSesion.innerHTML = `
+            <span class="nav-link mb-0">${usuarioActivo.email}</span>
+            <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
+                Cerrar sesión
+            </button>
+        `;
+
+        const botonLogout = document.getElementById("btn-logout");
+
+        if (botonLogout) {
+            botonLogout.addEventListener("click", gestionarCierreSesion);
+        }
+    } else {
+        zonaSesion.innerHTML = `
+            <a class="nav-link" href="login.html">Login</a>
+        `;
+    }
+}
+
+function gestionarCierreSesion() {
+    cerrarSesion();
+    window.location.href = "login.html";
 }
 
 function pintarUsuarios() {
@@ -108,9 +109,20 @@ function registrarEventosEliminar() {
 }
 
 function gestionarEliminacionUsuario(id) {
-    eliminarUsuario(id);
-    pintarUsuarios();
-    mostrarMensaje("Usuario eliminado correctamente.", "ok");
+    try {
+        eliminarUsuario(id);
+        pintarUsuarios();
+        actualizarNavbar();
+        mostrarMensaje("Usuario eliminado correctamente.", "ok");
+    } catch (error) {
+        mostrarMensaje(error.message || "No se pudo eliminar el usuario.", "error");
+    }
+}
+
+function validarFormularioUsuario(nombre, email, password, rol) {
+    if (!nombre || !email || !password || !rol) {
+        throw new Error("Debes rellenar todos los campos.");
+    }
 }
 
 function gestionarCreacionUsuario(evento) {
@@ -121,38 +133,40 @@ function gestionarCreacionUsuario(evento) {
     const password = inputPasswordUsuario.value.trim();
     const rol = inputRolUsuario.value.trim();
 
-    if (nombre === "" || email === "" || password === "" || rol === "") {
-        mostrarMensaje("Debes rellenar todos los campos.", "error");
-        return;
+    try {
+        validarFormularioUsuario(nombre, email, password, rol);
+
+        crearUsuario({
+            nombre,
+            email,
+            password,
+            rol
+        });
+
+        if (formularioUsuario) {
+            formularioUsuario.reset();
+        }
+
+        pintarUsuarios();
+        mostrarMensaje("Usuario creado correctamente.", "ok");
+    } catch (error) {
+        mostrarMensaje(error.message || "No se pudo crear el usuario.", "error");
     }
-
-    const usuarios = obtenerUsuarios();
-    const emailRepetido = usuarios.some((usuario) => usuario.email === email);
-
-    if (emailRepetido) {
-        mostrarMensaje("Ya existe un usuario con ese correo.", "error");
-        return;
-    }
-
-    crearUsuario({
-        nombre,
-        email,
-        password,
-        rol
-    });
-
-    if (formularioUsuario) {
-        formularioUsuario.reset();
-    }
-
-    pintarUsuarios();
-    mostrarMensaje("Usuario creado correctamente.", "ok");
 }
 
-actualizarNavbar();
+async function inicializarUsuariosVista() {
+    try {
+        await inicializarAlmacenaje();
+        actualizarNavbar();
+        pintarUsuarios();
 
-if (formularioUsuario) {
-    formularioUsuario.addEventListener("submit", gestionarCreacionUsuario);
+        if (formularioUsuario) {
+            formularioUsuario.addEventListener("submit", gestionarCreacionUsuario);
+        }
+    } catch (error) {
+        console.error("Error al inicializar la vista de usuarios:", error);
+        mostrarMensaje("Error al cargar la gestión de usuarios.", "error");
+    }
 }
 
-pintarUsuarios();
+document.addEventListener("DOMContentLoaded", inicializarUsuariosVista);

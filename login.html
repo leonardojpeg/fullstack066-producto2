@@ -1,10 +1,9 @@
 <!--
 IA utilizada: ChatGPT
 
-Prompt 1: "Crea una pantalla de login moderna con Bootstrap para una app de empleo"
-Prompt 2: "Cómo diseñar un formulario de inicio de sesión centrado y responsive"
-Prompt 3: "Cómo mantener coherencia visual entre dashboard y login en una aplicación web"
-Prompt 4: "Qué elementos debe tener una página de login simple para un prototipo frontend"
+Corrección para Producto 2:
+- Eliminadas referencias a datos.js
+- Alineado con almacenaje.js + WebStorage
 -->
 
 <!DOCTYPE html>
@@ -29,17 +28,17 @@ Prompt 4: "Qué elementos debe tener una página de login simple para un prototi
                 <span>Jobs</span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Abrir navegación">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="menuPrincipal">
-                <div class="navbar-nav ms-auto align-items-lg-center" id="navbar-links">
+                <div class="navbar-nav ms-auto align-items-lg-center">
                     <a class="nav-link" href="index.html">Dashboard</a>
                     <a class="nav-link" href="ofertas.html">Ofertas</a>
                     <a class="nav-link" href="usuarios.html">Usuarios</a>
                     <span id="zona-sesion" class="d-flex align-items-lg-center flex-column flex-lg-row"></span>
-                </div>  
+                </div>
             </div>
         </div>
     </nav>
@@ -52,7 +51,7 @@ Prompt 4: "Qué elementos debe tener una página de login simple para un prototi
                         <span class="hero-tag">Acceso de usuario</span>
                         <h1 class="display-5 fw-bold mt-3">Inicia sesión en AgroJobs</h1>
                         <p class="lead text-secondary mt-3">
-                            Accede a tu cuenta para consultar ofertas, demandas de empleo y gestionar la información de la plataforma.
+                            Accede a tu cuenta para consultar ofertas, demandas de empleo y gestionar la plataforma.
                         </p>
                     </div>
 
@@ -60,32 +59,18 @@ Prompt 4: "Qué elementos debe tener una página de login simple para un prototi
                         <div class="search-panel shadow-sm">
                             <h2 class="h4 mb-3">Bienvenido de nuevo</h2>
                             <p class="text-muted mb-4">
-                                Introduce tu correo electrónico y contraseña para acceder a la aplicación.
+                                Introduce tu correo electrónico y contraseña para acceder.
                             </p>
 
                             <form id="form-login" novalidate>
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Correo electrónico</label>
-                                    <input
-                                        type="email"
-                                        class="form-control"
-                                        id="email"
-                                        name="email"
-                                        placeholder="Ej. usuario@agrojobs.com"
-                                        required
-                                    >
+                                    <input type="email" class="form-control" id="email" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="password" class="form-label">Contraseña</label>
-                                    <input
-                                        type="password"
-                                        class="form-control"
-                                        id="password"
-                                        name="password"
-                                        placeholder="Introduce tu contraseña"
-                                        required
-                                    >
+                                    <input type="password" class="form-control" id="password" required>
                                 </div>
 
                                 <div class="d-grid mt-4">
@@ -105,12 +90,16 @@ Prompt 4: "Qué elementos debe tener una página de login simple para un prototi
 
     <main class="container py-5">
         <div class="row g-4">
+
             <div class="col-md-4">
                 <article class="card dashboard-card h-100 shadow-sm">
                     <div class="card-body">
                         <h3 class="h5 fw-bold mb-3">Acceso sencillo</h3>
                         <p class="text-muted mb-0">
-                            Puedes utilizar los usuarios descritos en <strong>datos.js</strong> para acceder. Ejemplo: laura@correo.com / contraseña: 1234
+                            Puedes utilizar los usuarios almacenados en el navegador.
+                            <br><br>
+                            Ejemplo:<br>
+                            <strong>laura@correo.com / 1234</strong>
                         </p>
                     </div>
                 </article>
@@ -119,9 +108,9 @@ Prompt 4: "Qué elementos debe tener una página de login simple para un prototi
             <div class="col-md-4">
                 <article class="card dashboard-card h-100 shadow-sm">
                     <div class="card-body">
-                        <h3 class="h5 fw-bold mb-3">Diseño responsive</h3>
+                        <h3 class="h5 fw-bold mb-3">Persistencia local</h3>
                         <p class="text-muted mb-0">
-                            La pantalla se adapta a móvil, tablet y escritorio gracias al uso de Bootstrap.
+                            Los datos se almacenan en el navegador mediante WebStorage e IndexedDB.
                         </p>
                     </div>
                 </article>
@@ -130,13 +119,14 @@ Prompt 4: "Qué elementos debe tener una página de login simple para un prototi
             <div class="col-md-4">
                 <article class="card dashboard-card h-100 shadow-sm">
                     <div class="card-body">
-                        <h3 class="h5 fw-bold mb-3">Preparado para JS</h3>
+                        <h3 class="h5 fw-bold mb-3">Arquitectura modular</h3>
                         <p class="text-muted mb-0">
-                            El login está listo para validar el usuario contra los datos almacenados en <strong>datos.js</strong>.
+                            El login utiliza el módulo <strong>almacenaje.js</strong> para validar usuarios.
                         </p>
                     </div>
                 </article>
             </div>
+
         </div>
     </main>
 

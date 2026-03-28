@@ -1,13 +1,18 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo validar un login en JavaScript usando funciones de un módulo almacenaje.js"
-Prompt 2: "Cómo usar addEventListener en un formulario de login"
-Prompt 3: "Cómo guardar datos de sesión con sessionStorage"
-Prompt 4: "Cómo mostrar el correo del usuario logueado en la navbar de una app frontend"
+Adaptación de int_2_login.js para Producto 2:
+- login usando almacenaje.js
+- usuario activo en localStorage
+- navbar conectada al módulo
 */
 
-import { validarLogin } from "./almacenaje.js";
+import {
+    inicializarAlmacenaje,
+    loguearUsuario,
+    obtenerUsuarioActivo,
+    cerrarSesion
+} from "./almacenaje.js";
 
 const formularioLogin = document.getElementById("form-login");
 const inputEmail = document.getElementById("email");
@@ -31,13 +36,13 @@ function mostrarMensaje(texto, tipo) {
 
 function actualizarNavbar() {
     const zonaSesion = document.getElementById("zona-sesion");
-    const emailGuardado = sessionStorage.getItem("usuarioLogueado");
+    const usuarioActivo = obtenerUsuarioActivo();
 
     if (!zonaSesion) return;
 
-    if (emailGuardado) {
+    if (usuarioActivo) {
         zonaSesion.innerHTML = `
-            <span class="nav-link mb-0">${emailGuardado}</span>
+            <span class="nav-link mb-0">${usuarioActivo.email}</span>
             <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
                 Cerrar sesión
             </button>
@@ -46,7 +51,7 @@ function actualizarNavbar() {
         const botonLogout = document.getElementById("btn-logout");
 
         if (botonLogout) {
-            botonLogout.addEventListener("click", cerrarSesion);
+            botonLogout.addEventListener("click", gestionarCierreSesion);
         }
     } else {
         zonaSesion.innerHTML = `
@@ -55,49 +60,55 @@ function actualizarNavbar() {
     }
 }
 
-function cerrarSesion() {
-    sessionStorage.removeItem("usuarioLogueado");
-    sessionStorage.removeItem("nombreUsuario");
-    sessionStorage.removeItem("rolUsuario");
+function gestionarCierreSesion() {
+    cerrarSesion();
     window.location.href = "login.html";
 }
 
-function iniciarSesion(evento) {
+function validarFormularioLogin(email, password) {
+    if (email === "" || password === "") {
+        throw new Error("Debes rellenar el correo y la contraseña.");
+    }
+}
+
+async function iniciarSesion(evento) {
     evento.preventDefault();
 
     const email = inputEmail.value.trim();
     const password = inputPassword.value.trim();
 
-    if (email === "" || password === "") {
-        mostrarMensaje("Debes rellenar el correo y la contraseña.", "error");
-        return;
+    try {
+        validarFormularioLogin(email, password);
+
+        const usuarioEncontrado = loguearUsuario(email, password);
+
+        mostrarMensaje(`Bienvenido, ${usuarioEncontrado.nombre}.`, "ok");
+        actualizarNavbar();
+
+        if (formularioLogin) {
+            formularioLogin.reset();
+        }
+
+        setTimeout(() => {
+            window.location.href = "index.html";
+        }, 1000);
+    } catch (error) {
+        mostrarMensaje(error.message || "No se pudo iniciar sesión.", "error");
     }
-
-    const usuarioEncontrado = validarLogin(email, password);
-
-    if (!usuarioEncontrado) {
-        mostrarMensaje("Correo o contraseña incorrectos.", "error");
-        return;
-    }
-
-    sessionStorage.setItem("usuarioLogueado", usuarioEncontrado.email);
-    sessionStorage.setItem("nombreUsuario", usuarioEncontrado.nombre);
-    sessionStorage.setItem("rolUsuario", usuarioEncontrado.rol);
-
-    mostrarMensaje(`Bienvenido, ${usuarioEncontrado.nombre}.`, "ok");
-    actualizarNavbar();
-
-    if (formularioLogin) {
-        formularioLogin.reset();
-    }
-
-    setTimeout(() => {
-        window.location.href = "index.html";
-    }, 1000);
 }
 
-actualizarNavbar();
+async function inicializarLogin() {
+    try {
+        await inicializarAlmacenaje();
+        actualizarNavbar();
 
-if (formularioLogin) {
-    formularioLogin.addEventListener("submit", iniciarSesion);
+        if (formularioLogin) {
+            formularioLogin.addEventListener("submit", iniciarSesion);
+        }
+    } catch (error) {
+        console.error("Error al inicializar la página de login:", error);
+        mostrarMensaje("Error al cargar el sistema de login.", "error");
+    }
 }
+
+document.addEventListener("DOMContentLoaded", inicializarLogin);

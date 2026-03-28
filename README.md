@@ -2,125 +2,89 @@
 
 Aplicación web frontend desarrollada como prototipo de gestión de ofertas y demandas de empleo en el sector agrícola.
 
-## 🔗 Demo
+## Demo
 
 Disponible en CodeSandbox:  
 https://codesandbox.io/p/sandbox/github/leonardojpeg/fullstack066-producto2/main
 
----
+## Descripción del proyecto
 
-## 📌 Descripción del proyecto
+AgroJobs es una aplicación web construida con HTML, CSS y JavaScript Vanilla que permite gestionar una plataforma de empleo donde los usuarios pueden:
 
-AgroJobs es una aplicación web construida únicamente con HTML, CSS y JavaScript que permite:
+- iniciar sesión en la aplicación
+- registrar nuevos usuarios
+- crear ofertas y demandas de empleo
+- consultar y eliminar publicaciones
+- visualizar publicaciones en un dashboard interactivo
+- seleccionar publicaciones mediante arrastrar y soltar
 
-- Visualizar ofertas de empleo y perfiles de candidatos
-- Crear nuevas publicaciones (ofertas o demandas)
-- Gestionar usuarios registrados
-- Simular un sistema de login básico
+Este producto corresponde a la evolución del Producto 1, incorporando persistencia en el navegador y APIs HTML5 para dejar el frontend preparado para futuras integraciones con backend.
 
-El objetivo es demostrar el uso de JavaScript en el frontend aplicando conceptos como manipulación del DOM, eventos, arrays de datos y modularidad.
+## Funcionalidades principales
 
----
+### Login
+- validación de credenciales
+- gestión de usuario activo
+- persistencia del usuario activo en `localStorage`
+- actualización dinámica de la navbar
 
-## ⚙️ Tecnologías utilizadas
+### Gestión de usuarios
+- alta de usuarios
+- consulta de usuarios
+- borrado de usuarios
+- persistencia en `localStorage`
+
+### Gestión de ofertas y demandas
+- alta de publicaciones
+- consulta de publicaciones
+- borrado de publicaciones
+- persistencia en `IndexedDB`
+- gráfico nativo mediante `canvas`
+
+### Dashboard
+- visualización de publicaciones disponibles
+- selección de publicaciones
+- arrastrar y soltar entre dos zonas
+- persistencia de la selección en el navegador
+
+## Tecnologías utilizadas
 
 - HTML5
 - CSS3
 - Bootstrap 5
-- JavaScript (ES Modules)
-- CodeSandbox (entorno de ejecución)
+- JavaScript Vanilla (ES Modules)
+- WebStorage (`localStorage`)
+- IndexedDB
+- HTML5 Canvas
+- HTML5 Drag and Drop API
+- CodeSandbox
 
----
+## Estructura del proyecto
 
-## 🧠 Estructura del proyecto
-
+```text
 /css
-
-└── style.css → Estilos personalizados
+└── style.css
 
 /docs
-
-├── mockup_index.jpg → Mockup pantalla dashboard
-
-├── mockup_login.jpg → Mockup pantalla login
-
-├── mockup_ofertas.jpg → Mockup pantalla ofertas
-
-├── mockup_usuarios.jpg → Mockup pantalla usuarios
-
-└── uml_mvc.jpeg → Diagrama UML del sistema
-
+└── uml mvc.jpeg
 
 /img
-
 ├── android-chrome-192x192.png
-
 ├── android-chrome-512x512.png
-
 ├── apple-touch-icon.png
-
 ├── favicon-16x16.png
-
 ├── favicon-32x32.png
-
-└── favicon.ico → Iconos de la aplicación
-
+└── favicon.ico
 
 /js
+├── almacenaje.js
+├── int_1_dashboard.js
+├── int_2_login.js
+├── int_3_empleo.js
+└── int_4_usuarios.js
 
-├── datos.js → Datos simulados (usuarios, ofertas, demandas)
-
-├── login.js → Lógica de autenticación
-
-├── landing.js → Dashboard principal
-
-├── ofertas.js → CRUD de ofertas y demandas
-
-└── usuarios.js → CRUD de usuarios
-
-
-Archivos HTML:
-
-├── index.html → Dashboard
-
-├── login.html → Página de login
-
-├── ofertas.html → Gestión de ofertas/demandas
-
-└── usuarios.html → Gestión de usuarios
-
-
-README.md → Documentación del proyecto
-
----
-
-## 🔐 Sistema de login
-
-El login se valida contra los datos almacenados en `datos.js`.
-
-Si las credenciales son correctas:
-- Se guarda el usuario en `sessionStorage`
-- Se muestra el email en la navbar
-- Se habilita el botón de "Cerrar sesión"
-
-### Credenciales de prueba
-
-```javascript
-{
-  id: 1,
-  email: "admin@agrojobs.com",
-  password: "1234"
-},
-{
-  id: 2,
-  email: "laura@correo.com",
-  password: "1234"
-},
-{
-  id: 3,
-  email: "rrhh@campogrande.com",
-  password: "1234"
-}
-=======
-# fullstack066-producto2
->>>>>>> 448b9426fed1770b261dbbfd1b9e6ba80dcd27eb
+Archivos HTML
+├── index.html
+├── login.html
+├── ofertas.html
+└── usuarios.html

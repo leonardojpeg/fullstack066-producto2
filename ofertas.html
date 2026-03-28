@@ -1,10 +1,11 @@
 <!--
 IA utilizada: ChatGPT
 
-Prompt 1: "Crea una página de gestión de ofertas y demandas con Bootstrap y JavaScript"
-Prompt 2: "Cómo diseñar un formulario para alta de ofertas laborales y demandas de empleo"
-Prompt 3: "Cómo mostrar un listado de ofertas y demandas en tarjetas o tabla con Bootstrap"
-Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un frontend sin persistencia"
+Adaptación de ofertas.html para Producto 2:
+- formulario alineado con el modelo Empleo
+- campos: tipo, título, email, fecha, descripción
+- tabla coherente con el enunciado
+- canvas HTML5 para gráfico nativo
 -->
 
 <!DOCTYPE html>
@@ -39,7 +40,7 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                     <a class="nav-link active" href="ofertas.html">Ofertas</a>
                     <a class="nav-link" href="usuarios.html">Usuarios</a>
                     <span id="zona-sesion" class="d-flex align-items-lg-center flex-column flex-lg-row"></span>
-                </div>  
+                </div>
             </div>
         </div>
     </nav>
@@ -52,7 +53,7 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                         <span class="hero-tag">Gestión laboral</span>
                         <h1 class="display-5 fw-bold mt-3">Gestiona ofertas y demandas de empleo</h1>
                         <p class="lead text-secondary mt-3">
-                            Crea nuevos anuncios laborales y consulta el listado actual de ofertas y perfiles candidatos.
+                            Crea nuevas publicaciones y consulta el listado actual de ofertas y demandas de empleo almacenadas en la aplicación.
                         </p>
                     </div>
 
@@ -60,7 +61,7 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                         <div class="search-panel shadow-sm">
                             <h2 class="h4 mb-3">Nueva publicación</h2>
                             <p class="text-muted mb-4">
-                                Completa el formulario para añadir una nueva oferta o demanda en la plataforma.
+                                Completa el formulario para añadir una nueva oferta o demanda a la plataforma.
                             </p>
 
                             <form id="form-oferta" novalidate>
@@ -75,23 +76,42 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="titulo" class="form-label">Título o nombre</label>
-                                        <input type="text" id="titulo" class="form-control" placeholder="Ej. Ingeniero agrónomo">
+                                        <label for="titulo" class="form-label">Título</label>
+                                        <input
+                                            type="text"
+                                            id="titulo"
+                                            class="form-control"
+                                            placeholder="Ej. Ingeniero agrónomo"
+                                        >
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="empresa" class="form-label">Empresa / candidato</label>
-                                        <input type="text" id="empresa" class="form-control" placeholder="Ej. Campo Verde">
+                                        <label for="email" class="form-label">Correo electrónico</label>
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            class="form-control"
+                                            placeholder="Ej. rrhh@empresa.com"
+                                        >
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="ubicacion" class="form-label">Ubicación</label>
-                                        <input type="text" id="ubicacion" class="form-control" placeholder="Ej. Lleida">
+                                        <label for="fecha" class="form-label">Fecha</label>
+                                        <input
+                                            type="date"
+                                            id="fecha"
+                                            class="form-control"
+                                        >
                                     </div>
 
                                     <div class="col-12">
                                         <label for="descripcion" class="form-label">Descripción breve</label>
-                                        <textarea id="descripcion" class="form-control" rows="3" placeholder="Describe la oferta o demanda de empleo"></textarea>
+                                        <textarea
+                                            id="descripcion"
+                                            class="form-control"
+                                            rows="3"
+                                            placeholder="Describe la oferta o demanda de empleo"
+                                        ></textarea>
                                     </div>
 
                                     <div class="col-12 d-grid">
@@ -112,7 +132,7 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <div>
                 <h2 class="fw-bold mb-1">Listado de ofertas y demandas</h2>
-                <p class="text-muted mb-0">Consulta las publicaciones registradas en la aplicación.</p>
+                <p class="text-muted mb-0">Consulta las publicaciones registradas actualmente en la aplicación.</p>
             </div>
 
             <div class="d-flex gap-2">
@@ -123,11 +143,26 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
 
         <div id="contenedor-ofertas" class="row g-4 mb-5"></div>
 
+        <section class="mb-5">
+            <div class="bg-white shadow-sm rounded p-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h2 class="fw-bold mb-1">Gráfico de publicaciones</h2>
+                        <p class="text-muted mb-0">Representación visual nativa mediante Canvas de ofertas y demandas registradas.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                    <canvas id="grafico-empleos" width="700" height="320"></canvas>
+                </div>
+            </div>
+        </section>
+
         <section>
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                 <div>
                     <h2 class="fw-bold mb-1">Tabla de publicaciones</h2>
-                    <p class="text-muted mb-0">Vista tabular de ofertas y demandas registradas.</p>
+                    <p class="text-muted mb-0">Vista tabular de ofertas y demandas almacenadas.</p>
                 </div>
             </div>
 
@@ -137,9 +172,9 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                         <tr>
                             <th>ID</th>
                             <th>Tipo</th>
-                            <th>Título / Nombre</th>
-                            <th>Empresa / Profesión</th>
-                            <th>Ubicación / Disponibilidad</th>
+                            <th>Título</th>
+                            <th>Email</th>
+                            <th>Fecha</th>
                             <th>Descripción</th>
                             <th class="text-end">Acciones</th>
                         </tr>

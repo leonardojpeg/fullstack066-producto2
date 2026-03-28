@@ -1,10 +1,11 @@
 <!--
 IA utilizada: ChatGPT
 
-Prompt 1: "Crea un dashboard de empleo moderno con Bootstrap, hero section, navbar y tarjetas visuales"
-Prompt 2: "Cómo diferenciar visualmente ofertas y demandas de empleo usando Bootstrap y CSS"
-Prompt 3: "Cómo estructurar una página principal con buscador y grid de tarjetas responsive"
-Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en InfoJobs y JobToday"
+Adaptación de index.html para Producto 2:
+- dashboard con dos zonas
+- publicaciones disponibles
+- publicaciones seleccionadas
+- preparado para drag and drop nativo
 -->
 
 <!DOCTYPE html>
@@ -32,13 +33,14 @@ Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en I
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Abrir navegación">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="menuPrincipal">
                 <div class="navbar-nav ms-auto align-items-lg-center" id="navbar-links">
                     <a class="nav-link active" href="index.html">Dashboard</a>
                     <a class="nav-link" href="ofertas.html">Ofertas</a>
                     <a class="nav-link" href="usuarios.html">Usuarios</a>
                     <span id="zona-sesion" class="d-flex align-items-lg-center flex-column flex-lg-row"></span>
-                </div>  
+                </div>
             </div>
         </div>
     </nav>
@@ -51,7 +53,7 @@ Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en I
                         <span class="hero-tag">Portal de empleo</span>
                         <h1 class="display-5 fw-bold mt-3">Encuentra empleo o talento fácilmente</h1>
                         <p class="lead text-secondary mt-3">
-                            Consulta ofertas de empleo y demandas laborales desde un mismo dashboard visual y claro.
+                            Consulta ofertas y demandas de empleo desde un dashboard visual, y selecciona las publicaciones que más te interesen mediante arrastrar y soltar.
                         </p>
                     </div>
 
@@ -66,8 +68,8 @@ Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en I
                                     </div>
 
                                     <div class="col-md-4">
-                                        <label for="ubicacion" class="form-label">Ubicación</label>
-                                        <input type="text" id="ubicacion" class="form-control" placeholder="Ej. Barcelona">
+                                        <label for="ubicacion-busqueda" class="form-label">Ubicación</label>
+                                        <input type="text" id="ubicacion-busqueda" class="form-control" placeholder="Ej. Barcelona">
                                     </div>
 
                                     <div class="col-md-3 d-grid align-self-end">
@@ -75,6 +77,9 @@ Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en I
                                     </div>
                                 </div>
                             </form>
+                            <p class="text-muted small mt-3 mb-0">
+                                El buscador puede mantenerse como elemento visual o evolucionarse después si quieres añadir filtros.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -83,10 +88,10 @@ Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en I
     </header>
 
     <main class="container py-5">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
             <div>
                 <h2 class="fw-bold mb-1">Dashboard principal</h2>
-                <p class="text-muted mb-0">Resumen visual de ofertas y demandas de empleo.</p>
+                <p class="text-muted mb-0">Arrastra publicaciones entre apartados para gestionar tu selección.</p>
             </div>
 
             <div class="d-flex gap-2">
@@ -95,7 +100,39 @@ Prompt 4: "Cómo mejorar una landing page de empleo con un estilo inspirado en I
             </div>
         </div>
 
-        <div id="contenedor-tarjetas" class="row g-4"></div>
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <section class="bg-white shadow-sm rounded p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h3 class="h4 fw-bold mb-1">Publicaciones disponibles</h3>
+                            <p class="text-muted mb-0">Arrastra una tarjeta a la zona de seleccionadas.</p>
+                        </div>
+                    </div>
+
+                    <div
+                        id="contenedor-disponibles"
+                        class="row g-4 min-vh-25 zona-drop"
+                    ></div>
+                </section>
+            </div>
+
+            <div class="col-lg-6">
+                <section class="bg-white shadow-sm rounded p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h3 class="h4 fw-bold mb-1">Publicaciones seleccionadas</h3>
+                            <p class="text-muted mb-0">También puedes devolver una tarjeta a la zona disponible.</p>
+                        </div>
+                    </div>
+
+                    <div
+                        id="contenedor-seleccionados"
+                        class="row g-4 min-vh-25 zona-drop"
+                    ></div>
+                </section>
+            </div>
+        </div>
     </main>
 
     <script type="module" src="js/int_1_dashboard.js"></script>

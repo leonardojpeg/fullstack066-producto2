@@ -1,10 +1,9 @@
 <!--
 IA utilizada: ChatGPT
 
-Prompt 1: "Crea una pantalla de gestión de usuarios con Bootstrap para una app web"
-Prompt 2: "Cómo diseñar un formulario para alta de usuario en un prototipo frontend"
-Prompt 3: "Cómo mostrar un listado de usuarios con botones de eliminar usando Bootstrap"
-Prompt 4: "Cómo mantener coherencia visual entre dashboard, login y usuarios en una aplicación web"
+Corrección para Producto 2:
+- ajuste semántico del label de rol
+- coherencia con almacenaje.js y la arquitectura actual
 -->
 
 <!DOCTYPE html>
@@ -39,7 +38,7 @@ Prompt 4: "Cómo mantener coherencia visual entre dashboard, login y usuarios en
                     <a class="nav-link" href="ofertas.html">Ofertas</a>
                     <a class="nav-link active" href="usuarios.html">Usuarios</a>
                     <span id="zona-sesion" class="d-flex align-items-lg-center flex-column flex-lg-row"></span>
-                </div>  
+                </div>
             </div>
         </div>
     </nav>
@@ -81,7 +80,7 @@ Prompt 4: "Cómo mantener coherencia visual entre dashboard, login y usuarios en
                                     </div>
 
                                     <div class="col-6">
-                                        <label for="password-usuario" class="form-label">Tipo de usuario</label>
+                                        <label for="rol-usuario" class="form-label">Tipo de usuario</label>
                                         <select id="rol-usuario" class="form-select">
                                             <option value="" selected disabled>Selecciona una opción</option>
                                             <option value="Candidato">Candidato</option>

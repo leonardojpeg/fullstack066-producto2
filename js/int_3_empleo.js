@@ -1,63 +1,34 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo crear y renderizar ofertas y demandas con JavaScript usando un módulo almacenaje.js"
-Prompt 2: "Cómo usar un formulario para añadir ofertas y demandas en JavaScript"
-Prompt 3: "Cómo eliminar tarjetas dinámicas con addEventListener y funciones de almacenaje"
-Prompt 4: "Cómo mostrar ofertas y demandas con estilos diferentes usando Bootstrap"
+Adaptación definitiva de int_3_empleo.js para Producto 2:
+- empleos gestionados en IndexedDB mediante almacenaje.js
+- entidad unificada Empleo
+- render de tarjetas y tabla
+- borrado persistente
+- gráfico Canvas nativo
 */
 
 import {
-    obtenerOfertas,
-    obtenerDemandas,
+    inicializarAlmacenaje,
+    obtenerEmpleos,
     crearEmpleo,
-    crearPublicacion,
     eliminarEmpleo,
-    eliminarPublicacion
+    obtenerUsuarioActivo,
+    cerrarSesion
 } from "./almacenaje.js";
 
 const formularioOferta = document.getElementById("form-oferta");
 const inputTipo = document.getElementById("tipo");
 const inputTitulo = document.getElementById("titulo");
-const inputEmpresa = document.getElementById("empresa");
-const inputUbicacion = document.getElementById("ubicacion");
+const inputEmail = document.getElementById("email");
+const inputFecha = document.getElementById("fecha");
 const inputDescripcion = document.getElementById("descripcion");
+
 const mensajeOferta = document.getElementById("mensaje-oferta");
 const contenedorOfertas = document.getElementById("contenedor-ofertas");
 const tablaOfertas = document.getElementById("tabla-ofertas");
-
-function actualizarNavbar() {
-    const zonaSesion = document.getElementById("zona-sesion");
-    const emailGuardado = sessionStorage.getItem("usuarioLogueado");
-
-    if (!zonaSesion) return;
-
-    if (emailGuardado) {
-        zonaSesion.innerHTML = `
-            <span class="nav-link mb-0">${emailGuardado}</span>
-            <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
-                Cerrar sesión
-            </button>
-        `;
-
-        const botonLogout = document.getElementById("btn-logout");
-
-        if (botonLogout) {
-            botonLogout.addEventListener("click", cerrarSesion);
-        }
-    } else {
-        zonaSesion.innerHTML = `
-            <a class="nav-link" href="login.html">Login</a>
-        `;
-    }
-}
-
-function cerrarSesion() {
-    sessionStorage.removeItem("usuarioLogueado");
-    sessionStorage.removeItem("nombreUsuario");
-    sessionStorage.removeItem("rolUsuario");
-    window.location.href = "login.html";
-}
+const canvasGrafico = document.getElementById("grafico-empleos");
 
 function mostrarMensaje(texto, tipo) {
     if (!mensajeOferta) return;
@@ -74,55 +45,107 @@ function mostrarMensaje(texto, tipo) {
     }
 }
 
-function pintarPublicaciones() {
-    pintarTarjetas();
-    pintarTabla();
-    registrarEventosEliminar();
+function actualizarNavbar() {
+    const zonaSesion = document.getElementById("zona-sesion");
+    const usuarioActivo = obtenerUsuarioActivo();
+
+    if (!zonaSesion) return;
+
+    if (usuarioActivo) {
+        zonaSesion.innerHTML = `
+            <span class="nav-link mb-0">${usuarioActivo.email}</span>
+            <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
+                Cerrar sesión
+            </button>
+        `;
+
+        const botonLogout = document.getElementById("btn-logout");
+
+        if (botonLogout) {
+            botonLogout.addEventListener("click", gestionarCierreSesion);
+        }
+    } else {
+        zonaSesion.innerHTML = `
+            <a class="nav-link" href="login.html">Login</a>
+        `;
+    }
 }
 
-function pintarTarjetas() {
-    if (!contenedorOfertas) return;
+function gestionarCierreSesion() {
+    cerrarSesion();
+    window.location.href = "login.html";
+}
 
-    const ofertas = obtenerOfertas();
-    const demandas = obtenerDemandas();
+function normalizarTipo(valor) {
+    if (valor === "oferta") return "Oferta";
+    if (valor === "demanda") return "Demanda";
+    return "";
+}
+
+function validarFormularioEmpleo(tipo, titulo, email, fecha, descripcion) {
+    if (!tipo || !titulo || !email || !fecha || !descripcion) {
+        throw new Error("Debes rellenar todos los campos obligatorios.");
+    }
+
+    if (!["Oferta", "Demanda"].includes(tipo)) {
+        throw new Error('El tipo debe ser "Oferta" o "Demanda".');
+    }
+
+    const emailValido = /\S+@\S+\.\S+/.test(email);
+    if (!emailValido) {
+        throw new Error("Debes introducir un correo electrónico válido.");
+    }
+}
+
+function escaparHTML(texto) {
+    return String(texto ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+async function pintarPublicaciones() {
+    try {
+        const empleos = await obtenerEmpleos();
+        pintarTarjetas(empleos);
+        pintarTabla(empleos);
+        registrarEventosEliminar();
+        dibujarGraficoCanvas(empleos);
+    } catch (error) {
+        console.error("Error al pintar publicaciones:", error);
+        mostrarMensaje("No se pudieron cargar las publicaciones.", "error");
+    }
+}
+
+function pintarTarjetas(empleos) {
+    if (!contenedorOfertas) return;
 
     let html = "";
 
-    ofertas.forEach((oferta) => {
-        html += `
-            <div class="col-md-6 col-xl-4">
-                <article class="card dashboard-card oferta-card h-100 shadow-sm">
-                    <div class="card-body">
-                        <span class="small text-uppercase text-primary fw-semibold mb-2 d-block">Oferta laboral</span>
-                        <h3 class="card-title h4">${oferta.titulo}</h3>
-                        <p class="card-text mb-2"><strong>Empresa:</strong> ${oferta.empresa}</p>
-                        <p class="card-text mb-3"><strong>Ubicación:</strong> ${oferta.ubicacion}</p>
-                        <p class="text-muted small">${oferta.descripcion ?? "Sin descripción."}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-4">
-                            <span class="badge rounded-pill text-bg-primary px-3 py-2">Oferta</span>
-                            <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar-oferta" data-id="${oferta.id}">
-                                Eliminar
-                            </button>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        `;
-    });
+    empleos.forEach((empleo) => {
+        const esOferta = empleo.tipo === "Oferta";
+        const claseCard = esOferta ? "oferta-card" : "demanda-card";
+        const claseTexto = esOferta ? "text-primary" : "text-success";
+        const claseBadge = esOferta ? "text-bg-primary" : "text-bg-success";
+        const etiqueta = esOferta ? "Oferta laboral" : "Demanda de empleo";
 
-    demandas.forEach((demanda) => {
         html += `
             <div class="col-md-6 col-xl-4">
-                <article class="card dashboard-card demanda-card h-100 shadow-sm">
+                <article class="card dashboard-card ${claseCard} h-100 shadow-sm">
                     <div class="card-body">
-                        <span class="small text-uppercase text-success fw-semibold mb-2 d-block">Perfil candidato</span>
-                        <h3 class="card-title h4">${demanda.nombre}</h3>
-                        <p class="card-text mb-2"><strong>Busca:</strong> ${demanda.profesion}</p>
-                        <p class="card-text mb-3"><strong>Disponibilidad:</strong> ${demanda.disponibilidad}</p>
-                        <p class="text-muted small">${demanda.descripcion ?? "Sin descripción."}</p>
+                        <span class="small text-uppercase ${claseTexto} fw-semibold mb-2 d-block">${etiqueta}</span>
+                        <h3 class="card-title h4">${escaparHTML(empleo.titulo)}</h3>
+                        <p class="card-text mb-2"><strong>Email:</strong> ${escaparHTML(empleo.email)}</p>
+                        <p class="card-text mb-3"><strong>Fecha:</strong> ${escaparHTML(empleo.fecha)}</p>
+                        <p class="text-muted small">${escaparHTML(empleo.descripcion)}</p>
                         <div class="d-flex justify-content-between align-items-center mt-4">
-                            <span class="badge rounded-pill text-bg-success px-3 py-2">Demanda</span>
-                            <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar-demanda" data-id="${demanda.id}">
+                            <span class="badge rounded-pill ${claseBadge} px-3 py-2">${escaparHTML(empleo.tipo)}</span>
+                            <button
+                                type="button"
+                                class="btn btn-outline-danger btn-sm btn-eliminar-empleo"
+                                data-id="${empleo.id}">
                                 Eliminar
                             </button>
                         </div>
@@ -135,43 +158,27 @@ function pintarTarjetas() {
     contenedorOfertas.innerHTML = html;
 }
 
-function pintarTabla() {
+function pintarTabla(empleos) {
     if (!tablaOfertas) return;
-
-    const ofertas = obtenerOfertas();
-    const demandas = obtenerDemandas();
 
     let html = "";
 
-    ofertas.forEach((oferta) => {
-        html += `
-            <tr>
-                <td>${oferta.id}</td>
-                <td><span class="badge text-bg-primary">Oferta</span></td>
-                <td>${oferta.titulo}</td>
-                <td>${oferta.empresa}</td>
-                <td>${oferta.ubicacion}</td>
-                <td>${oferta.descripcion ?? "Sin descripción."}</td>
-                <td class="text-end">
-                    <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar-oferta" data-id="${oferta.id}">
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
+    empleos.forEach((empleo) => {
+        const claseBadge = empleo.tipo === "Oferta" ? "text-bg-primary" : "text-bg-success";
 
-    demandas.forEach((demanda) => {
         html += `
             <tr>
-                <td>${demanda.id}</td>
-                <td><span class="badge text-bg-success">Demanda</span></td>
-                <td>${demanda.nombre}</td>
-                <td>${demanda.profesion}</td>
-                <td>${demanda.disponibilidad}</td>
-                <td>${demanda.descripcion ?? "Sin descripción."}</td>
+                <td>${empleo.id}</td>
+                <td><span class="badge ${claseBadge}">${escaparHTML(empleo.tipo)}</span></td>
+                <td>${escaparHTML(empleo.titulo)}</td>
+                <td>${escaparHTML(empleo.email)}</td>
+                <td>${escaparHTML(empleo.fecha)}</td>
+                <td>${escaparHTML(empleo.descripcion)}</td>
                 <td class="text-end">
-                    <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar-demanda" data-id="${demanda.id}">
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm btn-eliminar-empleo"
+                        data-id="${empleo.id}">
                         Eliminar
                     </button>
                 </td>
@@ -183,86 +190,131 @@ function pintarTabla() {
 }
 
 function registrarEventosEliminar() {
-    const botonesEliminarOferta = document.querySelectorAll(".btn-eliminar-oferta");
-    const botonesEliminarDemanda = document.querySelectorAll(".btn-eliminar-demanda");
+    const botonesEliminar = document.querySelectorAll(".btn-eliminar-empleo");
 
-    botonesEliminarOferta.forEach((boton) => {
-        boton.addEventListener("click", () => {
+    botonesEliminar.forEach((boton) => {
+        boton.addEventListener("click", async () => {
             const id = Number(boton.dataset.id);
-            eliminarOferta(id);
-        });
-    });
-
-    botonesEliminarDemanda.forEach((boton) => {
-        boton.addEventListener("click", () => {
-            const id = Number(boton.dataset.id);
-            eliminarDemanda(id);
+            await gestionarEliminacionEmpleo(id);
         });
     });
 }
 
-function eliminarOferta(id) {
-    eliminarEmpleo(id);
-    pintarPublicaciones();
-    mostrarMensaje("Oferta eliminada correctamente.", "ok");
+async function gestionarEliminacionEmpleo(id) {
+    try {
+        await eliminarEmpleo(id);
+        await pintarPublicaciones();
+        mostrarMensaje("Publicación eliminada correctamente.", "ok");
+    } catch (error) {
+        console.error("Error al eliminar empleo:", error);
+        mostrarMensaje(error.message || "No se pudo eliminar la publicación.", "error");
+    }
 }
 
-function eliminarDemanda(id) {
-    eliminarPublicacion(id);
-    pintarPublicaciones();
-    mostrarMensaje("Demanda eliminada correctamente.", "ok");
-}
-
-function gestionarCreacionPublicacion(evento) {
+async function gestionarCreacionPublicacion(evento) {
     evento.preventDefault();
 
-    const tipo = inputTipo.value.trim();
+    const tipo = normalizarTipo(inputTipo.value.trim());
     const titulo = inputTitulo.value.trim();
-    const empresa = inputEmpresa.value.trim();
-    const ubicacion = inputUbicacion.value.trim();
+    const email = inputEmail.value.trim();
+    const fecha = inputFecha.value.trim();
     const descripcion = inputDescripcion.value.trim();
 
-    if (tipo === "" || titulo === "" || empresa === "" || ubicacion === "") {
-        mostrarMensaje("Debes rellenar todos los campos obligatorios.", "error");
-        return;
-    }
+    try {
+        validarFormularioEmpleo(tipo, titulo, email, fecha, descripcion);
 
-    if (tipo === "oferta") {
-        crearEmpleo({
-            empresaId: 3,
-            empresa: empresa,
-            titulo: titulo,
-            ubicacion: ubicacion,
-            descripcion: descripcion
+        await crearEmpleo({
+            titulo,
+            email,
+            fecha,
+            descripcion,
+            tipo
         });
 
-        mostrarMensaje("Oferta creada correctamente.", "ok");
-    } else if (tipo === "demanda") {
-        crearPublicacion({
-            usuarioId: 2,
-            nombre: titulo,
-            profesion: empresa,
-            disponibilidad: ubicacion,
-            descripcion: descripcion
-        });
+        if (formularioOferta) {
+            formularioOferta.reset();
+        }
 
-        mostrarMensaje("Demanda creada correctamente.", "ok");
-    } else {
-        mostrarMensaje("Debes seleccionar un tipo de publicación.", "error");
-        return;
+        await pintarPublicaciones();
+        mostrarMensaje("Publicación creada correctamente.", "ok");
+    } catch (error) {
+        console.error("Error al crear empleo:", error);
+        mostrarMensaje(error.message || "No se pudo crear la publicación.", "error");
     }
-
-    if (formularioOferta) {
-        formularioOferta.reset();
-    }
-
-    pintarPublicaciones();
 }
 
-actualizarNavbar();
+function dibujarGraficoCanvas(empleos) {
+    if (!canvasGrafico) return;
 
-if (formularioOferta) {
-    formularioOferta.addEventListener("submit", gestionarCreacionPublicacion);
+    const ctx = canvasGrafico.getContext("2d");
+    if (!ctx) return;
+
+    const ofertas = empleos.filter(empleo => empleo.tipo === "Oferta").length;
+    const demandas = empleos.filter(empleo => empleo.tipo === "Demanda").length;
+
+    const width = canvasGrafico.width;
+    const height = canvasGrafico.height;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Fondo
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+
+    // Título
+    ctx.fillStyle = "#212529";
+    ctx.font = "bold 18px Inter, sans-serif";
+    ctx.fillText("Gráfico de ofertas y demandas", 20, 30);
+
+    // Ejes
+    ctx.strokeStyle = "#adb5bd";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(60, 260);
+    ctx.lineTo(640, 260);
+    ctx.moveTo(60, 60);
+    ctx.lineTo(60, 260);
+    ctx.stroke();
+
+    const maxValor = Math.max(ofertas, demandas, 1);
+    const escala = 160 / maxValor;
+
+    const alturaOfertas = ofertas * escala;
+    const alturaDemandas = demandas * escala;
+
+    // Barra ofertas
+    ctx.fillStyle = "#0d6efd";
+    ctx.fillRect(150, 260 - alturaOfertas, 120, alturaOfertas);
+
+    // Barra demandas
+    ctx.fillStyle = "#198754";
+    ctx.fillRect(380, 260 - alturaDemandas, 120, alturaDemandas);
+
+    // Etiquetas
+    ctx.fillStyle = "#212529";
+    ctx.font = "14px Inter, sans-serif";
+    ctx.fillText("Ofertas", 180, 285);
+    ctx.fillText("Demandas", 395, 285);
+
+    // Valores
+    ctx.font = "bold 14px Inter, sans-serif";
+    ctx.fillText(String(ofertas), 200, Math.max(80, 250 - alturaOfertas));
+    ctx.fillText(String(demandas), 430, Math.max(80, 250 - alturaDemandas));
 }
 
-pintarPublicaciones();
+async function inicializarVistaEmpleos() {
+    try {
+        await inicializarAlmacenaje();
+        actualizarNavbar();
+        await pintarPublicaciones();
+
+        if (formularioOferta) {
+            formularioOferta.addEventListener("submit", gestionarCreacionPublicacion);
+        }
+    } catch (error) {
+        console.error("Error al inicializar la vista de empleos:", error);
+        mostrarMensaje("Error al cargar la gestión de empleos.", "error");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", inicializarVistaEmpleos);

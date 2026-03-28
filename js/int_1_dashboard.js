@@ -1,34 +1,44 @@
 /*
 IA utilizada: ChatGPT
 
-Prompt 1: "Cómo pintar tarjetas dinámicas con JavaScript a partir de datos obtenidos desde un módulo"
-Prompt 2: "Cómo mostrar ofertas y demandas en un dashboard con Bootstrap"
-Prompt 3: "Cómo crear tarjetas visuales con imágenes placeholder en JavaScript"
-Prompt 4: "Cómo mostrar usuario logueado y botón cerrar sesión en la navbar"
+Adaptación definitiva de int_1_dashboard.js para Producto 2:
+- dashboard con drag and drop nativo
+- selección persistida en localStorage
+- publicaciones leídas desde IndexedDB mediante almacenaje.js
 */
 
-import { obtenerOfertas, obtenerDemandas } from "./almacenaje.js";
+import {
+    inicializarAlmacenaje,
+    obtenerEmpleos,
+    guardarSeleccionDashboard,
+    obtenerSeleccionDashboard,
+    obtenerUsuarioActivo,
+    cerrarSesion
+} from "./almacenaje.js";
 
-const contenedor = document.getElementById("contenedor-tarjetas");
+const contenedorDisponibles = document.getElementById("contenedor-disponibles");
+const contenedorSeleccionados = document.getElementById("contenedor-seleccionados");
+
+let empleosCache = [];
+let seleccionadosIds = [];
 
 function actualizarNavbar() {
     const zonaSesion = document.getElementById("zona-sesion");
-    const emailGuardado = sessionStorage.getItem("usuarioLogueado");
+    const usuarioActivo = obtenerUsuarioActivo();
 
     if (!zonaSesion) return;
 
-    if (emailGuardado) {
+    if (usuarioActivo) {
         zonaSesion.innerHTML = `
-            <span class="nav-link mb-0">${emailGuardado}</span>
+            <span class="nav-link mb-0">${usuarioActivo.email}</span>
             <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
                 Cerrar sesión
             </button>
         `;
 
         const botonLogout = document.getElementById("btn-logout");
-
         if (botonLogout) {
-            botonLogout.addEventListener("click", cerrarSesion);
+            botonLogout.addEventListener("click", gestionarCierreSesion);
         }
     } else {
         zonaSesion.innerHTML = `
@@ -37,69 +47,181 @@ function actualizarNavbar() {
     }
 }
 
-function cerrarSesion() {
-    sessionStorage.removeItem("usuarioLogueado");
-    sessionStorage.removeItem("nombreUsuario");
-    sessionStorage.removeItem("rolUsuario");
+function gestionarCierreSesion() {
+    cerrarSesion();
     window.location.href = "login.html";
 }
 
-function pintarTarjetas() {
-    if (!contenedor) return;
-
-    const ofertas = obtenerOfertas();
-    const demandas = obtenerDemandas();
-
-    let html = "";
-
-    ofertas.forEach((oferta) => {
-        html += `
-            <div class="col-md-6 col-xl-4">
-                <article class="card dashboard-card oferta-card h-100 shadow-sm">
-                    <img 
-                        src="https://placehold.co/600x320/eaf2ff/0d6efd?text=Oferta+de+empleo" 
-                        class="card-img-top dashboard-card-img" 
-                        alt="Imagen de oferta de empleo"
-                    >
-                    <div class="card-body d-flex flex-column">
-                        <span class="small text-uppercase text-primary fw-semibold mb-2">Oferta laboral</span>
-                        <h3 class="card-title h4">${oferta.titulo}</h3>
-                        <p class="card-text mb-2"><strong>Empresa:</strong> ${oferta.empresa}</p>
-                        <p class="card-text mb-4"><strong>Ubicación:</strong> ${oferta.ubicacion}</p>
-                        <div class="mt-auto">
-                            <span class="badge rounded-pill text-bg-primary px-3 py-2">Oferta</span>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        `;
-    });
-
-    demandas.forEach((demanda) => {
-        html += `
-            <div class="col-md-6 col-xl-4">
-                <article class="card dashboard-card demanda-card h-100 shadow-sm">
-                    <img 
-                        src="https://placehold.co/600x320/eafaf1/198754?text=Demanda+de+empleo" 
-                        class="card-img-top dashboard-card-img" 
-                        alt="Imagen de demanda de empleo"
-                    >
-                    <div class="card-body d-flex flex-column">
-                        <span class="small text-uppercase text-success fw-semibold mb-2">Perfil candidato</span>
-                        <h3 class="card-title h4">${demanda.nombre}</h3>
-                        <p class="card-text mb-2"><strong>Busca:</strong> ${demanda.profesion}</p>
-                        <p class="card-text mb-4"><strong>Disponibilidad:</strong> ${demanda.disponibilidad}</p>
-                        <div class="mt-auto">
-                            <span class="badge rounded-pill text-bg-success px-3 py-2">Demanda</span>
-                        </div>
-                    </div>
-                </article>
-            </div>
-        `;
-    });
-
-    contenedor.innerHTML = html;
+function escaparHTML(texto) {
+    return String(texto ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
-actualizarNavbar();
-pintarTarjetas();
+function crearTarjetaHTML(empleo) {
+    const esOferta = empleo.tipo === "Oferta";
+    const claseCard = esOferta ? "oferta-card" : "demanda-card";
+    const claseTexto = esOferta ? "text-primary" : "text-success";
+    const claseBadge = esOferta ? "text-bg-primary" : "text-bg-success";
+
+    return `
+        <div class="col-12" data-id="${empleo.id}">
+            <article
+                class="card dashboard-card ${claseCard} h-100 shadow-sm tarjeta-empleo"
+                draggable="true"
+                data-id="${empleo.id}"
+            >
+                <div class="card-body d-flex flex-column">
+                    <span class="small text-uppercase ${claseTexto} fw-semibold mb-2">
+                        ${escaparHTML(empleo.tipo)}
+                    </span>
+                    <h3 class="card-title h5">${escaparHTML(empleo.titulo)}</h3>
+                    <p class="card-text mb-2"><strong>Email:</strong> ${escaparHTML(empleo.email)}</p>
+                    <p class="card-text mb-3"><strong>Fecha:</strong> ${escaparHTML(empleo.fecha)}</p>
+                    <p class="text-muted small mb-4">${escaparHTML(empleo.descripcion)}</p>
+                    <div class="mt-auto">
+                        <span class="badge rounded-pill ${claseBadge} px-3 py-2">${escaparHTML(empleo.tipo)}</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    `;
+}
+
+function renderZona(contenedor, listaEmpleos, mensajeVacio) {
+    if (!contenedor) return;
+
+    if (listaEmpleos.length === 0) {
+        contenedor.innerHTML = `
+            <div class="col-12">
+                <div class="border rounded p-4 text-center text-muted bg-light-subtle">
+                    ${mensajeVacio}
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    contenedor.innerHTML = listaEmpleos.map(crearTarjetaHTML).join("");
+    registrarEventosDragEnTarjetas(contenedor);
+}
+
+function pintarDashboard() {
+    const disponibles = empleosCache.filter(
+        empleo => !seleccionadosIds.includes(Number(empleo.id))
+    );
+
+    const seleccionados = empleosCache.filter(
+        empleo => seleccionadosIds.includes(Number(empleo.id))
+    );
+
+    renderZona(
+        contenedorDisponibles,
+        disponibles,
+        "No hay publicaciones disponibles."
+    );
+
+    renderZona(
+        contenedorSeleccionados,
+        seleccionados,
+        "Todavía no has seleccionado ninguna publicación."
+    );
+}
+
+function registrarEventosDragEnTarjetas(contenedor) {
+    const tarjetas = contenedor.querySelectorAll(".tarjeta-empleo");
+
+    tarjetas.forEach((tarjeta) => {
+        tarjeta.addEventListener("dragstart", (evento) => {
+            const id = tarjeta.dataset.id;
+            evento.dataTransfer.setData("text/plain", id);
+            evento.dataTransfer.effectAllowed = "move";
+        });
+    });
+}
+
+function configurarZonaDrop(zona, destino) {
+    if (!zona) return;
+
+    zona.addEventListener("dragover", (evento) => {
+        evento.preventDefault();
+        evento.dataTransfer.dropEffect = "move";
+        zona.classList.add("border", "border-2", "border-primary");
+    });
+
+    zona.addEventListener("dragleave", () => {
+        zona.classList.remove("border", "border-2", "border-primary");
+    });
+
+    zona.addEventListener("drop", (evento) => {
+        evento.preventDefault();
+        zona.classList.remove("border", "border-2", "border-primary");
+
+        const id = Number(evento.dataTransfer.getData("text/plain"));
+        if (!id) return;
+
+        moverTarjeta(id, destino);
+    });
+}
+
+function moverTarjeta(id, destino) {
+    const yaSeleccionado = seleccionadosIds.includes(id);
+
+    if (destino === "seleccionados" && !yaSeleccionado) {
+        seleccionadosIds.push(id);
+    }
+
+    if (destino === "disponibles" && yaSeleccionado) {
+        seleccionadosIds = seleccionadosIds.filter(itemId => itemId !== id);
+    }
+
+    guardarSeleccionDashboard(seleccionadosIds);
+    pintarDashboard();
+}
+
+function configurarDragAndDrop() {
+    configurarZonaDrop(contenedorDisponibles, "disponibles");
+    configurarZonaDrop(contenedorSeleccionados, "seleccionados");
+}
+
+async function cargarDatosDashboard() {
+    empleosCache = await obtenerEmpleos();
+    seleccionadosIds = obtenerSeleccionDashboard().map(Number);
+}
+
+async function inicializarDashboard() {
+    try {
+        await inicializarAlmacenaje();
+        actualizarNavbar();
+        await cargarDatosDashboard();
+        configurarDragAndDrop();
+        pintarDashboard();
+    } catch (error) {
+        console.error("Error al inicializar el dashboard:", error);
+
+        if (contenedorDisponibles) {
+            contenedorDisponibles.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger mb-0">
+                        No se pudo cargar el dashboard.
+                    </div>
+                </div>
+            `;
+        }
+
+        if (contenedorSeleccionados) {
+            contenedorSeleccionados.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-warning mb-0">
+                        No se pudo cargar la selección guardada.
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", inicializarDashboard);
