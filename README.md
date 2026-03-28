@@ -1,12 +1,11 @@
-<<<<<<< HEAD
-# AgroJobs - Producto 1
+# AgroJobs - Producto 2
 
 Aplicación web frontend desarrollada como prototipo de gestión de ofertas y demandas de empleo en el sector agrícola.
 
 ## 🔗 Demo
 
 Disponible en CodeSandbox:  
-https://codesandbox.io/p/sandbox/github/leonardojpeg/fullstack066-producto1/main
+https://codesandbox.io/p/sandbox/github/leonardojpeg/fullstack066-producto2/main
 
 ---
 
