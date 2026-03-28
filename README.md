@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AgroJobs - Producto 1
 
 Aplicación web frontend desarrollada como prototipo de gestión de ofertas y demandas de empleo en el sector agrícola.
@@ -121,3 +122,6 @@ Si las credenciales son correctas:
   email: "rrhh@campogrande.com",
   password: "1234"
 }
+=======
+# fullstack066-producto2
+>>>>>>> 448b9426fed1770b261dbbfd1b9e6ba80dcd27eb
