@@ -8,94 +8,60 @@ Prompt 4: "Cómo mostrar el correo del usuario logueado en la navbar de una app 
 */
 
 import { usuarios } from "./datos.js";
+import { Almacenaje, actualizarNavbar } from "./almacenaje.js";
 
-const formularioLogin = document.getElementById("form-login");
-const inputEmail = document.getElementById("email");
-const inputPassword = document.getElementById("password");
-const mensajeLogin = document.getElementById("mensaje-login");
+// Agrupamos todo dentro del evento de carga del DOM
+document.addEventListener("DOMContentLoaded", () => {
+    
+    const formularioLogin = document.getElementById("form-login");
+    const inputEmail = document.getElementById("email");
+    const inputPassword = document.getElementById("password");
+    const mensajeLogin = document.getElementById("mensaje-login");
 
-function mostrarMensaje(texto, tipo) {
-    if (!mensajeLogin) return;
-
-    mensajeLogin.textContent = texto;
-    mensajeLogin.className = "";
-
-    if (tipo === "error") {
-        mensajeLogin.classList.add("mensaje-error");
+    function mostrarMensaje(texto, tipo) {
+        if (!mensajeLogin) return;
+        mensajeLogin.textContent = texto;
+        mensajeLogin.className = ""; 
+        
+        if (tipo === "error") mensajeLogin.classList.add("mensaje-error");
+        if (tipo === "ok") mensajeLogin.classList.add("mensaje-ok");
     }
 
-    if (tipo === "ok") {
-        mensajeLogin.classList.add("mensaje-ok");
-    }
-}
+    function iniciarSesion(evento) {
+        evento.preventDefault();
 
-function actualizarNavbar() {
-    const zonaSesion = document.getElementById("zona-sesion");
-    const emailGuardado = sessionStorage.getItem("usuarioLogueado");
+        const email = inputEmail.value.trim();
+        const password = inputPassword.value.trim();
 
-    if (!zonaSesion) return;
-
-    if (emailGuardado) {
-        zonaSesion.innerHTML = `
-            <span class="nav-link mb-0">${emailGuardado}</span>
-            <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
-                Cerrar sesión
-            </button>
-        `;
-
-        const botonLogout = document.getElementById("btn-logout");
-
-        if (botonLogout) {
-            botonLogout.addEventListener("click", cerrarSesion);
+        if (email === "" || password === "") {
+            mostrarMensaje("Debes rellenar el correo y la contraseña.", "error");
+            return;
         }
-    } else {
-        zonaSesion.innerHTML = `
-            <a class="nav-link" href="login.html">Login</a>
-        `;
-    }
-}
 
-function cerrarSesion() {
-    sessionStorage.removeItem("usuarioLogueado");
-    window.location.href = "login.html";
-}
+        const usuarioEncontrado = usuarios.find(
+            (u) => u.email === email && u.password === password
+        );
 
-function iniciarSesion(evento) {
-    evento.preventDefault();
+        if (!usuarioEncontrado) {
+            mostrarMensaje("Correo o contraseña incorrectos.", "error");
+            return;
+        }
 
-    const email = inputEmail.value.trim();
-    const password = inputPassword.value.trim();
+        Almacenaje.setSesion(usuarioEncontrado.email);
+        mostrarMensaje(`Bienvenido, ${usuarioEncontrado.nombre}.`, "ok");
+        
+        actualizarNavbar(); 
 
-    if (email === "" || password === "") {
-        mostrarMensaje("Debes rellenar el correo y la contraseña.", "error");
-        return;
+        if (formularioLogin) formularioLogin.reset();
+
+        window.location.href = "index.html";
+        
     }
 
-    const usuarioEncontrado = usuarios.find(
-        (usuario) => usuario.email === email && usuario.password === password
-    );
 
-    if (!usuarioEncontrado) {
-        mostrarMensaje("Correo o contraseña incorrectos.", "error");
-        return;
-    }
-
-    sessionStorage.setItem("usuarioLogueado", usuarioEncontrado.email);
-
-    mostrarMensaje(`Bienvenido, ${usuarioEncontrado.nombre}.`, "ok");
     actualizarNavbar();
 
     if (formularioLogin) {
-        formularioLogin.reset();
+        formularioLogin.addEventListener("submit", iniciarSesion);
     }
-
-    setTimeout(() => {
-        window.location.href = "index.html";
-    }, 1000);
-}
-
-actualizarNavbar();
-
-if (formularioLogin) {
-    formularioLogin.addEventListener("submit", iniciarSesion);
-}
+});

@@ -6,158 +6,137 @@ Prompt 2: "Cómo listar usuarios dinámicamente en una tabla con Bootstrap"
 Prompt 3: "Cómo eliminar elementos de un array usando JavaScript"
 Prompt 4: "Cómo usar addEventListener para registrar eventos de formulario y botones"
 */
+import { usuarios as usuariosIniciales } from "./datos.js";
+import { Almacenaje, actualizarNavbar } from "./almacenaje.js";
 
-import { usuarios } from "./datos.js";
-
-const formularioUsuario = document.getElementById("form-usuario");
-const inputNombre = document.getElementById("nombre");
-const inputEmailUsuario = document.getElementById("email-usuario");
-const inputPasswordUsuario = document.getElementById("password-usuario");
-const inputRolUsuario = document.getElementById("rol-usuario");
-const mensajeUsuario = document.getElementById("mensaje-usuario");
-const contenedorUsuarios = document.getElementById("contenedor-usuarios");
-
-function actualizarNavbar() {
-    const zonaSesion = document.getElementById("zona-sesion");
-    const emailGuardado = sessionStorage.getItem("usuarioLogueado");
-
-    if (!zonaSesion) return;
-
-    if (emailGuardado) {
-        zonaSesion.innerHTML = `
-            <span class="nav-link mb-0">${emailGuardado}</span>
-            <button id="btn-logout" class="btn btn-outline-light btn-sm ms-lg-2 mt-2 mt-lg-0" type="button">
-                Cerrar sesión
-            </button>
-        `;
-
-        const botonLogout = document.getElementById("btn-logout");
-
-        if (botonLogout) {
-            botonLogout.addEventListener("click", cerrarSesion);
-        }
-    } else {
-        zonaSesion.innerHTML = `
-            <a class="nav-link" href="login.html">Login</a>
-        `;
-    }
-}
-
-function cerrarSesion() {
-    sessionStorage.removeItem("usuarioLogueado");
-    window.location.href = "login.html";
-}
-
-function mostrarMensaje(texto, tipo) {
-    if (!mensajeUsuario) return;
-
-    mensajeUsuario.textContent = texto;
-    mensajeUsuario.className = "";
-
-    if (tipo === "error") {
-        mensajeUsuario.classList.add("mensaje-error");
+document.addEventListener("DOMContentLoaded", () => {
+    if (Almacenaje.obtenerUsuarios().length === 0) {
+        Almacenaje.guardarUsuarios(usuariosIniciales);
     }
 
-    if (tipo === "ok") {
-        mensajeUsuario.classList.add("mensaje-ok");
+    const formularioUsuario = document.getElementById("form-usuario");
+    const inputNombre = document.getElementById("nombre");
+    const inputEmailUsuario = document.getElementById("email-usuario");
+    const inputPasswordUsuario = document.getElementById("password-usuario");
+    const inputRolUsuario = document.getElementById("rol-usuario");
+    const mensajeUsuario = document.getElementById("mensaje-usuario");
+    const contenedorUsuarios = document.getElementById("contenedor-usuarios");
+
+    function mostrarMensaje(texto, tipo) {
+        if (!mensajeUsuario) return;
+        mensajeUsuario.textContent = texto;
+        mensajeUsuario.className = "";
+        if (tipo === "error") mensajeUsuario.classList.add("mensaje-error");
+        if (tipo === "ok") mensajeUsuario.classList.add("mensaje-ok");
     }
-}
 
-function obtenerNuevoId(array) {
-    if (array.length === 0) {
-        return 1;
+    function obtenerNuevoId(array) {
+        if (array.length === 0) return 1;
+        const ids = array.map((u) => u.id);
+        return Math.max(...ids) + 1;
     }
 
-    const ids = array.map((elemento) => elemento.id);
-    return Math.max(...ids) + 1;
-}
+    function pintarUsuarios() {
+        if (!contenedorUsuarios) return;
 
-function pintarUsuarios() {
-    if (!contenedorUsuarios) return;
+        const listaUsuarios = Almacenaje.obtenerUsuarios();
+        let html = "";
 
-    let html = "";
-
-    usuarios.forEach((usuario) => {
-        html += `
-            <tr>
-                <td>${usuario.id}</td>
-                <td>${usuario.nombre}</td>
-                <td>${usuario.email}</td>
-                <td>${usuario.rol}</td>
-                <td class="text-end">
-                    <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar-usuario" data-id="${usuario.id}">
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    contenedorUsuarios.innerHTML = html;
-    registrarEventosEliminar();
-}
-
-function registrarEventosEliminar() {
-    const botonesEliminar = document.querySelectorAll(".btn-eliminar-usuario");
-
-    botonesEliminar.forEach((boton) => {
-        boton.addEventListener("click", () => {
-            const id = Number(boton.dataset.id);
-            eliminarUsuario(id);
+        listaUsuarios.forEach((usuario) => {
+            html += `
+                <tr>
+                    <td>${usuario.id}</td>
+                    <td>${usuario.nombre}</td>
+                    <td>${usuario.email}</td>
+                    <td>${usuario.rol}</td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-eliminar-usuario" data-email="${usuario.email}">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `;
         });
-    });
-}
 
-function eliminarUsuario(id) {
-    const indice = usuarios.findIndex((usuario) => usuario.id === id);
+        contenedorUsuarios.innerHTML = html;
+        registrarEventosEliminar();
+    }
 
-    if (indice !== -1) {
-        usuarios.splice(indice, 1);
+    /**
+     * EVENTOS: Asocia el click de eliminar a cada botón
+     */
+    function registrarEventosEliminar() {
+        const botonesEliminar = document.querySelectorAll(".btn-eliminar-usuario");
+        botonesEliminar.forEach((boton) => {
+            boton.onclick = () => {
+                const email = boton.dataset.email;
+                eliminarUsuario(email);
+            };
+        });
+    }
+
+    /**
+     * CRUD: Eliminar usuario del Storage
+     */
+    function eliminarUsuario(email) {
+        // El usuario no puede eliminarse a si mismo estando logueado
+        if (email === Almacenaje.getSesion()) {
+            mostrarMensaje("No puedes eliminar tu propio usuario mientras estás logueado.", "error");
+            return;
+        }
+
+        Almacenaje.borrarUsuario(email);
         pintarUsuarios();
         mostrarMensaje("Usuario eliminado correctamente.", "ok");
     }
-}
 
-function crearUsuario(evento) {
-    evento.preventDefault();
+    /**
+     * CRUD: Crear usuario y guardar en Storage
+     */
+    function crearUsuario(evento) {
+        evento.preventDefault();
 
-    const nombre = inputNombre.value.trim();
-    const email = inputEmailUsuario.value.trim();
-    const password = inputPasswordUsuario.value.trim();
-    const rol = inputRolUsuario.value.trim();
+        const nombre = inputNombre.value.trim();
+        const email = inputEmailUsuario.value.trim();
+        const password = inputPasswordUsuario.value.trim();
+        const rol = inputRolUsuario.value.trim();
 
-    if (nombre === "" || email === "" || password === "" || rol === "") {
-        mostrarMensaje("Debes rellenar todos los campos.", "error");
-        return;
+        if (!nombre || !email || !password || !rol) {
+            mostrarMensaje("Debes rellenar todos los campos.", "error");
+            return;
+        }
+
+        const listaActual = Almacenaje.obtenerUsuarios();
+        const emailRepetido = listaActual.some((u) => u.email === email);
+
+        if (emailRepetido) {
+            mostrarMensaje("Ya existe un usuario con ese correo.", "error");
+            return;
+        }
+
+        // Creamos el objeto
+        const nuevoUsuario = {
+            id: obtenerNuevoId(listaActual),
+            nombre,
+            email,
+            password,
+            rol
+        };
+
+        // Guardamos usando el módulo
+        listaActual.push(nuevoUsuario);
+        Almacenaje.guardarUsuarios(listaActual);
+
+        if (formularioUsuario) formularioUsuario.reset();
+
+        pintarUsuarios();
+        mostrarMensaje("Usuario creado correctamente.", "ok");
     }
 
-    const emailRepetido = usuarios.some((usuario) => usuario.email === email);
-
-    if (emailRepetido) {
-        mostrarMensaje("Ya existe un usuario con ese correo.", "error");
-        return;
-    }
-
-    usuarios.push({
-        id: obtenerNuevoId(usuarios),
-        nombre,
-        email,
-        password,
-        rol
-    });
+    actualizarNavbar();
+    pintarUsuarios();
 
     if (formularioUsuario) {
-        formularioUsuario.reset();
+        formularioUsuario.addEventListener("submit", crearUsuario);
     }
-
-    pintarUsuarios();
-    mostrarMensaje("Usuario creado correctamente.", "ok");
-}
-
-actualizarNavbar();
-
-if (formularioUsuario) {
-    formularioUsuario.addEventListener("submit", crearUsuario);
-}
-
-pintarUsuarios();
+});
