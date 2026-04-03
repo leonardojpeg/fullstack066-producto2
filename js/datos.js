@@ -50,21 +50,21 @@ export let usuarios = [
         id: 1,
         nombre: "Admin",
         email: "admin@agrojobs.com",
-        password: "1234",
+        password: "123456aA",
         rol: "Administrador"
     },
     {
         id: 2,
         nombre: "Laura Gómez",
         email: "laura@correo.com",
-        password: "1234",
+        password: "123456aA",
         rol: "Candidato"
     },
     {
         id: 3,
         nombre: "Campo Grande",
         email: "rrhh@campogrande.com",
-        password: "1234",
+        password: "123456aA",
         rol: "Empresa"
     }
 ];

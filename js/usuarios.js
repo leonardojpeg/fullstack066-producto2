@@ -106,6 +106,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        if(!validarEmail(email)){
+            mostrarMensaje("Debes introducir un formato de email valido.", "error");
+            return;
+        }
+
+        if(!validarPassword(password)){
+            mostrarMensaje("La contraseña debe contener 8 caracteres, una minuscula y una mayuscula minimo.", "error");
+            return;
+        }
+
         const listaActual = Almacenaje.obtenerUsuarios();
         const emailRepetido = listaActual.some((u) => u.email === email);
 
@@ -131,6 +141,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         pintarUsuarios();
         mostrarMensaje("Usuario creado correctamente.", "ok");
+    }
+
+    /* 
+    Funcion validacion formato email
+    */
+    function validarEmail(email) {
+        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return regex.test(email);
+    }
+
+    /* 
+    Función validación contraseña
+    */
+    function validarPassword(password) {
+        /* Minimo una mayuscula, una miniscula y un numero. 8 carácteres */
+        const regex = /^(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+        return regex.test(password);
     }
 
     actualizarNavbar();
