@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pintarTarjetas(ofertas, demandas);
         pintarTabla(ofertas, demandas);
         registrarEventosEliminar();
+        dibujarGrafico();
     }
 
     function pintarTarjetas(ofertas, demandas) {
@@ -181,6 +182,65 @@ document.addEventListener("DOMContentLoaded", () => {
         const anio = hoy.getFullYear();
 
         return `${dia}/${mes}/${anio}`;
+    }
+
+    /*
+    Función para dibujar el gráfico canvas
+    */
+    function dibujarGrafico() {
+        const canvas = document.getElementById("grafico-stats");
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        const numOfertas = Almacenaje.obtenerOfertas().length;
+        const numDemandas = Almacenaje.obtenerDemandas().length;
+
+        // 1. Limpiar el canvas antes de redibujar
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 2. Configuración de dimensiones
+        const margen = 50;
+        const anchoBarra = 80;
+        const alturaMax = canvas.height - (margen * 2);
+    
+        // Calcular escala (para que las barras no se salgan si hay muchos datos)
+        const maxDatos = Math.max(numOfertas, numDemandas, 1); 
+        const escala = alturaMax / maxDatos;
+
+        // 3. Dibujar Ejes
+        ctx.beginPath();
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 2;
+        ctx.moveTo(margen, margen); // Eje Y
+        ctx.lineTo(margen, canvas.height - margen); // Esquina
+        ctx.lineTo(canvas.width - margen, canvas.height - margen); // Eje X
+        ctx.stroke();
+
+        /**
+        * Función interna para dibujar cada barra
+        */
+        function dibujarBarra(x, valor, color, etiqueta) {
+            const h = valor * escala;
+            const y = (canvas.height - margen) - h;
+
+            // Dibujar la barra
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, anchoBarra, h);
+
+            // Texto del valor (encima de la barra)
+            ctx.fillStyle = "#000";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(valor, x + (anchoBarra / 2), y - 10);
+
+            // Etiqueta (debajo de la barra)
+            ctx.font = "12px Arial";
+            ctx.fillText(etiqueta, x + (anchoBarra / 2), canvas.height - (margen / 2));
+        }
+
+        // 4. Pintar las barras (Ofertas en Azul, Demandas en Verde)
+        dibujarBarra(margen + 50, numOfertas, "#0d6efd", "Ofertas");
+        dibujarBarra(margen + 180, numDemandas, "#198754", "Demandas");
     }
 
     actualizarNavbar();
