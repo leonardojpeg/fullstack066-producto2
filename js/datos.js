@@ -13,14 +13,16 @@ export let ofertas = [
         titulo: "Tractorista",
         empresa: "Campo Grande",
         ubicacion: "Tórrec",
-        descripcion: "Manejo de maquinaria agrícola y apoyo en tareas de campo."
+        descripcion: "Manejo de maquinaria agrícola y apoyo en tareas de campo.",
+        fecha: "27/03/2026"
     },
     {
         id: 2,
         titulo: "Ingeniero agrónomo",
         empresa: "Monmalo",
         ubicacion: "Agramunt",
-        descripcion: "Gestión de fincas, mejora de producción y coordinación técnica."
+        descripcion: "Gestión de fincas, mejora de producción y coordinación técnica.",
+        fecha: "25/03/2026"
     }
 ];
 
@@ -30,14 +32,16 @@ export let demandas = [
         nombre: "Laura Gómez",
         profesion: "Marketing Digital",
         disponibilidad: "Inmediata",
-        descripcion: "Interesada en comunicación digital, redes sociales y campañas online."
+        descripcion: "Interesada en comunicación digital, redes sociales y campañas online.",
+        fecha: "26/03/2026"
     },
     {
         id: 2,
         nombre: "Carlos Pérez",
         profesion: "Soporte IT",
         disponibilidad: "15 días",
-        descripcion: "Experiencia en soporte técnico, incidencias y atención a usuarios."
+        descripcion: "Experiencia en soporte técnico, incidencias y atención a usuarios.",
+        fecha: "27/03/2026"
     }
 ];
 

@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="small text-uppercase text-primary fw-semibold d-block mb-2">Oferta laboral</span>
                             <h3 class="card-title h4">${o.titulo}</h3>
                             <p class="card-text mb-1"><strong>${o.empresa}</strong></p>
+                            <p class="card-text mb-1"><strong>${o.fecha}</strong></p>
                             <p class="card-text text-muted small">${o.ubicacion}</p>
                             <p class="mt-3 small">${o.descripcion || "Sin descripción."}</p>
                             <div class="d-flex justify-content-between align-items-center mt-4">
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="small text-uppercase text-success fw-semibold d-block mb-2">Perfil candidato</span>
                             <h3 class="card-title h4">${d.nombre}</h3>
                             <p class="card-text mb-1"><strong>${d.profesion}</strong></p>
+                            <p class="card-text mb-1"><strong>${d.fecha}</strong></p>
                             <p class="card-text text-muted small">${d.disponibilidad}</p>
                             <p class="mt-3 small">${d.descripcion || "Sin descripción."}</p>
                             <div class="d-flex justify-content-between align-items-center mt-4">
@@ -93,19 +95,19 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!tablaOfertas) return;
         let html = "";
         
-        const fila = (id, tipo, t1, t2, t3, desc, clase, btnClase) => `
+        const fila = (id, tipo, t1, t2, t3, t4, desc, clase, btnClase) => `
             <tr>
                 <td>${id}</td>
                 <td><span class="badge ${clase}">${tipo}</span></td>
-                <td>${t1}</td><td>${t2}</td><td>${t3}</td>
+                <td>${t1}</td><td>${t2}</td><td>${t3}</td><td>${t4}</td>
                 <td class="small">${desc || "-"}</td>
                 <td class="text-end">
                     <button class="btn btn-outline-danger btn-sm ${btnClase}" data-id="${id}">Eliminar</button>
                 </td>
             </tr>`;
 
-        ofertas.forEach(o => html += fila(o.id, "Oferta", o.titulo, o.empresa, o.ubicacion, o.descripcion, "text-bg-primary", "btn-eliminar-oferta"));
-        demandas.forEach(d => html += fila(d.id, "Demanda", d.nombre, d.profesion, d.disponibilidad, d.descripcion, "text-bg-success", "btn-eliminar-demanda"));
+        ofertas.forEach(o => html += fila(o.id, "Oferta", o.titulo, o.empresa, o.ubicacion, o.descripcion, o.fecha, "text-bg-primary", "btn-eliminar-oferta"));
+        demandas.forEach(d => html += fila(d.id, "Demanda", d.nombre, d.profesion, d.disponibilidad, d.descripcion, d.fecha, "text-bg-success", "btn-eliminar-demanda"));
         
         tablaOfertas.innerHTML = html;
     }
@@ -132,11 +134,13 @@ document.addEventListener("DOMContentLoaded", () => {
     function crearPublicacion(evento) {
         evento.preventDefault();
         const tipo = inputTipo.value;
+        const fechaActual = obtenerFechaActual();
         const datos = {
             titulo: inputTitulo.value.trim(),
             empresa: inputEmpresa.value.trim(),
             ubicacion: inputUbicacion.value.trim(),
-            descripcion: inputDescripcion.value.trim()
+            descripcion: inputDescripcion.value.trim(),
+            fecha: fechaActual
         };
 
         if (!tipo || !datos.titulo || !datos.empresa || !datos.ubicacion) {
@@ -148,6 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const lista = Almacenaje.obtenerOfertas();
             lista.push({ id: obtenerNuevoId(lista), ...datos });
             Almacenaje.guardarOfertas(lista);
+
         } else {
             const lista = Almacenaje.obtenerDemandas();
             lista.push({ 
@@ -155,7 +160,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 nombre: datos.titulo, 
                 profesion: datos.empresa, 
                 disponibilidad: datos.ubicacion, 
-                descripcion: datos.descripcion 
+                descripcion: datos.descripcion,
+                fecha: datos.fecha
             });
             Almacenaje.guardarDemandas(lista);
         }
@@ -163,6 +169,18 @@ document.addEventListener("DOMContentLoaded", () => {
         formularioOferta.reset();
         pintarPublicaciones();
         mostrarMensaje("Publicado con éxito", "ok");
+    }
+
+    /*
+    Función para obtener la fecha automáticamente y formatearla a String
+    */
+    function obtenerFechaActual() {
+        const hoy = new Date();
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const anio = hoy.getFullYear();
+
+        return `${dia}/${mes}/${anio}`;
     }
 
     actualizarNavbar();

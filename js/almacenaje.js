@@ -23,17 +23,20 @@ export const Almacenaje = {
         Almacenaje.guardarUsuarios(filtrados);
     },
 
+    // --- DATOS DE SESION ---
     getSesion: () => localStorage.getItem(CLAVE_SESION),
     setSesion: (email) => localStorage.setItem(CLAVE_SESION, email),
     borrarSesion: () => localStorage.removeItem(CLAVE_SESION),
+
+    // --- DATOS DE OFERTAS ---
     obtenerOfertas: () => JSON.parse(localStorage.getItem("ofertas") || "[]"),
     guardarOfertas: (ofertas) => localStorage.setItem("ofertas", JSON.stringify(ofertas)),
     obtenerDemandas: () => JSON.parse(localStorage.getItem("demandas") || "[]"),
     guardarDemandas: (demandas) => localStorage.setItem("demandas", JSON.stringify(demandas)),
 };
 
-// --- LÓGICA DE INTERFAZ REUTILIZABLE ---
 
+// --- LÓGICA DE INTERFAZ REUTILIZABLE --- (Evitamos repetir funciones en todos los archivos js)
 export function actualizarNavbar() {
     const emailLogueado = Almacenaje.getSesion();
     const zonaSesion = document.getElementById("zona-sesion");
