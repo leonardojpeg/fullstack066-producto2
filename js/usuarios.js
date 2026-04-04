@@ -108,11 +108,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(!validarEmail(email)){
             mostrarMensaje("Debes introducir un formato de email valido.", "error");
+            inputEmailUsuario.focus();
             return;
         }
 
         if(!validarPassword(password)){
-            mostrarMensaje("La contraseña debe contener 8 caracteres, una minuscula y una mayuscula minimo.", "error");
+            mostrarMensaje("La contraseña debe tener 8 caracteres, y contener una minuscula, una mayuscula y un numero minimo.", "error");
+            inputPasswordUsuario.focus();
             return;
         }
 
