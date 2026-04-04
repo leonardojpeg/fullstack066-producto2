@@ -28,7 +28,7 @@ export let ofertas = [
 
 export let demandas = [
     {
-        id: 1,
+        id: 3,
         nombre: "Laura Gómez",
         profesion: "Marketing Digital",
         disponibilidad: "Inmediata",
@@ -36,7 +36,7 @@ export let demandas = [
         fecha: "26/03/2026"
     },
     {
-        id: 2,
+        id: 4,
         nombre: "Carlos Pérez",
         profesion: "Soporte IT",
         disponibilidad: "15 días",

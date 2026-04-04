@@ -32,8 +32,20 @@ document.addEventListener("DOMContentLoaded", () => {
         mensajeOferta.classList.add(tipo === "error" ? "mensaje-error" : "mensaje-ok");
     }
 
-    function obtenerNuevoId(array) {
-        return array.length === 0 ? 1 : Math.max(...array.map(e => e.id)) + 1;
+    /* 
+    Cambiada la funcion para generar ID's unicos independientemente de que sean ofertas o demandas, de esta manera, 
+    se gestiona mejor el drag and drop 
+    */
+    function obtenerNuevoId() {
+        const ofertas = Almacenaje.obtenerOfertas();
+        const demandas = Almacenaje.obtenerDemandas();
+    
+        const todos = [...ofertas, ...demandas];
+
+        if (todos.length === 0) return 1;
+
+        // Buscamos el ID más alto entre TODOS
+        return Math.max(...todos.map(e => e.id)) + 1;
     }
 
     function pintarPublicaciones() {
@@ -149,15 +161,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Eliminados arrays de entrada de obtenerNuevoId porque este ahora ya consulta ambos automáticamente
         if (tipo === "oferta") {
             const lista = Almacenaje.obtenerOfertas();
-            lista.push({ id: obtenerNuevoId(lista), ...datos });
+            lista.push({ id: obtenerNuevoId(), ...datos });
             Almacenaje.guardarOfertas(lista);
 
         } else {
             const lista = Almacenaje.obtenerDemandas();
             lista.push({ 
-                id: obtenerNuevoId(lista), 
+                id: obtenerNuevoId(), 
                 nombre: datos.titulo, 
                 profesion: datos.empresa, 
                 disponibilidad: datos.ubicacion, 

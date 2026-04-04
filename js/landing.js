@@ -11,7 +11,8 @@ import { ofertas as ofertasIniciales, demandas as demandasIniciales } from "./da
 import { Almacenaje, actualizarNavbar } from "./almacenaje.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-    const contenedor = document.getElementById("contenedor-tarjetas");
+    const contenedorDisponibles = document.getElementById("contenedor-disponibles");
+    const contenedorSeleccionados = document.getElementById("contenedor-seleccionados");
 
     if (Almacenaje.obtenerOfertas().length === 0) {
         Almacenaje.guardarOfertas(ofertasIniciales);
@@ -20,65 +21,113 @@ document.addEventListener("DOMContentLoaded", () => {
         Almacenaje.guardarDemandas(demandasIniciales);
     }
 
-    function pintarTarjetas() {
+    // Función global para printear las tarjetas en ambas secciones
+    function pintarDashboard() {
+
+        const ofertas = Almacenaje.obtenerOfertas();
+        const demandas = Almacenaje.obtenerDemandas();
+        const todas = [...ofertas, ...demandas];
+
+        // IDs que ha seleccionado el usuario (en una nueva clave del storage)
+        const seleccionadosIds = JSON.parse(localStorage.getItem("dashboard_seleccionados") || "[]");
+
+        // Filtramos en que lado deben estar
+        const disponibles = todas.filter(item => !seleccionadosIds.includes(item.id));
+        const seleccionados = todas.filter(item => seleccionadosIds.includes(item.id));
+
+        renderizarZona(contenedorDisponibles, disponibles, "No hay más publicaciones disponibles.");
+        renderizarZona(contenedorSeleccionados, seleccionados, "Arrastra aquí tus publicaciones favoritas.");
+
+        configurarEventosDrag();
+    }
+
+    function renderizarZona(contenedor, lista, mensajeVacio) {
         if (!contenedor) return;
 
-        const ofertasActuales = Almacenaje.obtenerOfertas();
-        const demandasActuales = Almacenaje.obtenerDemandas();
+        if (lista.length === 0) {
+            contenedor.innerHTML = `
+                <div class="col-12 text-center py-4 text-muted small">
+                    ${mensajeVacio}
+                </div>`; 
+            return;
+        }
 
-        let html = "";
+        contenedor.innerHTML = lista.map(item => {
+            const esOferta = item.titulo !== undefined;
+            const claseCard = esOferta ? "oferta-card" : "demanda-card";
+            const badgeClase = esOferta ? "text-bg-primary" : "text-bg-success";
+            const tituloFinal = esOferta ? item.titulo : item.nombre;
+            const subTitulo = item.empresa || item.profesion;
+            const infoExtra = item.ubicacion || item.disponibilidad;
 
-        ofertasActuales.forEach((oferta) => {
-            html += `
-                <div class="col-md-6 col-xl-4">
-                    <article class="card dashboard-card oferta-card h-100 shadow-sm">
-                        <img 
-                            src="https://placehold.co/600x320/eaf2ff/0d6efd?text=Oferta+de+empleo" 
-                            class="card-img-top dashboard-card-img" 
-                            alt="Imagen de oferta de empleo"
-                        >
-                        <div class="card-body d-flex flex-column">
-                            <span class="small text-uppercase text-primary fw-semibold mb-2">Oferta laboral</span>
-                            <h3 class="card-title h4">${oferta.titulo}</h3>
-                            <p class="card-text mb-2"><strong>Fecha:</strong> ${oferta.fecha}</p>
-                            <p class="card-text mb-2"><strong>Empresa:</strong> ${oferta.empresa}</p>
-                            <p class="card-text mb-4"><strong>Ubicación:</strong> ${oferta.ubicacion}</p>
-                            <div class="mt-auto">
-                                <span class="badge rounded-pill text-bg-primary px-3 py-2">Oferta</span>
+            return `
+                <div class="col-12 mb-2">
+                    <article class="card dashboard-card ${claseCard} h-100 shadow-sm tarjeta-arrastrable" 
+                            draggable="true" 
+                            data-id="${item.id}"
+                            ondragstart="event.dataTransfer.setData('text/plain', '${item.id}')">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div style="max-width: 80%;">
+                                    <h6 class="card-title mb-1 fw-bold text-truncate">${tituloFinal}</h6>
+                                    <p class="card-text small mb-0 fw-bold">${subTitulo}</p>
+                                    <p class="card-text small mb-0 text-muted">${infoExtra}</p>
+                                    <p class="card-text x-small mb-1 text-secondary" style="font-size: 0.7rem;">
+                                    ${item.fecha || 'Sin fecha'}
+                                    </p>
+                                    <p class="card-text small mb-0 text-muted text-truncate" style="max-height: 3em;">
+                                    ${item.descripcion || 'Sin descripción'}
+                                    </p>
+                                </div>
+                                <span class="badge rounded-pill ${badgeClase}">${esOferta ? 'Oferta' : 'Demanda'}</span>
                             </div>
                         </div>
                     </article>
                 </div>
             `;
-        });
+        }).join("");
+    }
 
-        demandasActuales.forEach((demanda) => {
-            html += `
-                <div class="col-md-6 col-xl-4">
-                    <article class="card dashboard-card demanda-card h-100 shadow-sm">
-                        <img 
-                            src="https://placehold.co/600x320/eafaf1/198754?text=Demanda+de+empleo" 
-                            class="card-img-top dashboard-card-img" 
-                            alt="Imagen de demanda de empleo"
-                        >
-                        <div class="card-body d-flex flex-column">
-                            <span class="small text-uppercase text-success fw-semibold mb-2">Perfil candidato</span>
-                            <h3 class="card-title h4">${demanda.nombre}</h3>
-                            <p class="card-text mb-2"><strong>Fecha:</strong> ${demanda.fecha}</p>
-                            <p class="card-text mb-2"><strong>Busca:</strong> ${demanda.profesion}</p>
-                            <p class="card-text mb-4"><strong>Disponibilidad:</strong> ${demanda.disponibilidad}</p>
-                            <div class="mt-auto">
-                                <span class="badge rounded-pill text-bg-success px-3 py-2">Demanda</span>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-            `;
-        });
+    /**
+     * Listeners nativos de HTML5 Drag & Drop
+     */
+    function configurarEventosDrag() {
+        [contenedorDisponibles, contenedorSeleccionados].forEach(zona => {
+        // Limpiamos eventos previos para evitar acumulación (La página crashea si se mueven muchas veces de un sitio a otro)
+        zona.ondragover = (e) => {
+            e.preventDefault();
+            zona.classList.add("drag-over");
+        };
 
-        contenedor.innerHTML = html;
+        zona.ondragleave = () => zona.classList.remove("drag-over");
+
+        zona.ondrop = (e) => {
+            e.preventDefault();
+            zona.classList.remove("drag-over");
+            const id = Number(e.dataTransfer.getData("text/plain"));
+            if (id) {
+                actualizarEstadoSeleccion(id, zona.id === "contenedor-seleccionados");
+            }
+        };
+    });
+    }
+
+    /**
+     * Guarda el cambio en LocalStorage y repinta
+     */
+    function actualizarEstadoSeleccion(id, añadir) {
+        let seleccionadosIds = JSON.parse(localStorage.getItem("dashboard_seleccionados") || "[]");
+
+        if (añadir) {
+            if (!seleccionadosIds.includes(id)) seleccionadosIds.push(id);
+        } else {
+            seleccionadosIds = seleccionadosIds.filter(favId => favId !== id);
+        }
+
+        localStorage.setItem("dashboard_seleccionados", JSON.stringify(seleccionadosIds));
+        pintarDashboard();
     }
 
     actualizarNavbar();
-    pintarTarjetas();
+    pintarDashboard();
 });
