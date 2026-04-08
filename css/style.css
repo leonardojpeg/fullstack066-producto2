@@ -156,3 +156,11 @@ main.container {
 #zona-sesion .btn {
     white-space: nowrap;
 }
+
+.contenedor-disponibles, .contenedor-seleccionados {
+    min-height: 200px;
+}
+
+.contenedor-seleccionados {
+    background-color: #f8faff;
+}
