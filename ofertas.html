@@ -80,8 +80,13 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                                     </div>
 
                                     <div class="col-md-6">
-                                        <label for="empresa" class="form-label">Empresa / candidato</label>
-                                        <input type="text" id="empresa" class="form-control" placeholder="Ej. Campo Verde">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="text" id="email" class="form-control" placeholder="Ej. direccionEmail@hotmail.com">
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="fecha" class="form-label">Fecha de publicación</label>
+                                        <input type="date" id="fechaPublicacion" class="form-control">
                                     </div>
 
                                     <div class="col-md-6">
@@ -138,7 +143,8 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
                             <th>ID</th>
                             <th>Tipo</th>
                             <th>Título / Nombre</th>
-                            <th>Empresa / Profesión</th>
+                            <th>Email</th>
+                            <th>Fecha Publicación</th>
                             <th>Ubicación / Disponibilidad</th>
                             <th>Descripción</th>
                             <th class="text-end">Acciones</th>
@@ -149,6 +155,10 @@ Prompt 4: "Qué estructura debe tener una pantalla CRUD sencilla para un fronten
             </div>
         </section>
     </main>
+    <div class="mt-4 text-center">
+    <h5>Ofertas y Demandas</h5>
+    <canvas id="graficoCanvas" width="300" height="200" style="border:1px solid #ddd; border-radius: 8px;"></canvas>
+    </div>
 
     <script type="module" src="js/ofertas.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>

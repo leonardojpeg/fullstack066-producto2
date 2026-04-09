@@ -4,12 +4,13 @@ import { ofertas, demandas } from "./datos.js";
 const formularioOferta = document.getElementById("form-oferta");
 const inputTipo = document.getElementById("tipo");
 const inputTitulo = document.getElementById("titulo");
-const inputEmpresa = document.getElementById("empresa");
 const inputUbicacion = document.getElementById("ubicacion");
 const inputDescripcion = document.getElementById("descripcion");
 const mensajeOferta = document.getElementById("mensaje-oferta");
 const contenedorOfertas = document.getElementById("contenedor-ofertas");
 const tablaOfertas = document.getElementById("tabla-ofertas");
+const inputEmailContacto = document.getElementById("email"); 
+const inputFecha = document.getElementById("fechaPublicacion"); 
 
 //Funcion MostrarusuarioActivo (antes: función actualizarNavbar):
 function mostrarUsuarioActivo() {
@@ -40,7 +41,7 @@ function mostrarUsuarioActivo() {
 //Evento DOMContentLoaded:
 document.addEventListener("DOMContentLoaded", () => {
     mostrarUsuarioActivo(); 
-
+    graficoOfertasDemandas()
     if (formularioLogin) {
         formularioLogin.addEventListener("submit", manejarEventoLogin);
     }
@@ -88,7 +89,8 @@ function pintarTarjetas() {
                     <div class="card-body">
                         <span class="small text-uppercase text-primary fw-semibold mb-2 d-block">Oferta laboral</span>
                         <h3 class="card-title h4">${oferta.titulo}</h3>
-                        <p class="card-text mb-2"><strong>Empresa:</strong> ${oferta.empresa}</p>
+                        <p class="card-text mb-2"><strong>Empresa:</strong> ${oferta.email}</p>
+                        <p class="card-text mb-2 text-muted small"><strong>Fecha:</strong> ${oferta.fecha}</p>
                         <p class="card-text mb-3"><strong>Ubicación:</strong> ${oferta.ubicacion}</p>
                         <p class="text-muted small">${oferta.descripcion ?? "Sin descripción."}</p>
                         <div class="d-flex justify-content-between align-items-center mt-4">
@@ -110,7 +112,8 @@ function pintarTarjetas() {
                     <div class="card-body">
                         <span class="small text-uppercase text-success fw-semibold mb-2 d-block">Perfil candidato</span>
                         <h3 class="card-title h4">${demanda.nombre}</h3>
-                        <p class="card-text mb-2"><strong>Busca:</strong> ${demanda.profesion}</p>
+                        <p class="card-text mb-2"><strong>Busca:</strong> ${demanda.email}</p>
+                        <p class="card-text mb-2 text-muted small"><strong>Fecha:</strong> ${demanda.fecha}</p>
                         <p class="card-text mb-3"><strong>Disponibilidad:</strong> ${demanda.disponibilidad}</p>
                         <p class="text-muted small">${demanda.descripcion ?? "Sin descripción."}</p>
                         <div class="d-flex justify-content-between align-items-center mt-4">
@@ -139,7 +142,8 @@ function pintarTabla() {
                 <td>${oferta.id}</td>
                 <td><span class="badge text-bg-primary">Oferta</span></td>
                 <td>${oferta.titulo}</td>
-                <td>${oferta.empresa}</td>
+                <td>${oferta.email}</td>
+                <td>${oferta.fecha}</td>
                 <td>${oferta.ubicacion}</td>
                 <td>${oferta.descripcion ?? "Sin descripción."}</td>
                 <td class="text-end">
@@ -157,7 +161,8 @@ function pintarTabla() {
                 <td>${demanda.id}</td>
                 <td><span class="badge text-bg-success">Demanda</span></td>
                 <td>${demanda.nombre}</td>
-                <td>${demanda.profesion}</td>
+                <td>${demanda.email}</td>
+                <td>${demanda.fecha}</td>
                 <td>${demanda.disponibilidad}</td>
                 <td>${demanda.descripcion ?? "Sin descripción."}</td>
                 <td class="text-end">
@@ -197,6 +202,7 @@ function eliminarOferta(id) {
     if (indice !== -1) {
         ofertas.splice(indice, 1);
         pintarPublicaciones();
+        graficoOfertasDemandas()
         mostrarMensaje("Oferta eliminada correctamente.", "ok");
     }
 }
@@ -207,6 +213,7 @@ function eliminarDemanda(id) {
     if (indice !== -1) {
         demandas.splice(indice, 1);
         pintarPublicaciones();
+        graficoOfertasDemandas()
         mostrarMensaje("Demanda eliminada correctamente.", "ok");
     }
 }
@@ -216,11 +223,12 @@ function crearPublicacion(evento) {
 
     const tipo = inputTipo.value.trim();
     const titulo = inputTitulo.value.trim();
-    const empresa = inputEmpresa.value.trim();
+    const email = inputEmail.value.trim(); 
+    const fecha = inputFecha.value;
     const ubicacion = inputUbicacion.value.trim();
     const descripcion = inputDescripcion.value.trim();
 
-    if (tipo === "" || titulo === "" || empresa === "" || ubicacion === "") {
+    if (tipo === "" || titulo === "" || email === "" || fecha === "" || ubicacion === "") {
         mostrarMensaje("Debes rellenar todos los campos obligatorios.", "error");
         return;
     }
@@ -229,7 +237,8 @@ function crearPublicacion(evento) {
         ofertas.push({
             id: obtenerNuevoId(ofertas),
             titulo,
-            empresa,
+            email,
+            fecha,
             ubicacion,
             descripcion
         });
@@ -239,11 +248,11 @@ function crearPublicacion(evento) {
         demandas.push({
             id: obtenerNuevoId(demandas),
             nombre: titulo,
-            profesion: empresa,
+            email: email,
+            fecha: fecha,
             disponibilidad: ubicacion,
             descripcion
         });
-
         mostrarMensaje("Demanda creada correctamente.", "ok");
     } else {
         mostrarMensaje("Debes seleccionar un tipo de publicación.", "error");
@@ -253,14 +262,39 @@ function crearPublicacion(evento) {
     if (formularioOferta) {
         formularioOferta.reset();
     }
-
     pintarPublicaciones();
+    graficoOfertasDemandas()
 }
 
-actualizarNavbar();
+function graficoOfertasDemandas() {
+    const canvas = document.getElementById("graficoCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
 
-if (formularioOferta) {
-    formularioOferta.addEventListener("submit", crearPublicacion);
+ 
+    const nOfertas = ofertas.length;
+    const nDemandas = demandas.length;
+    const maxVal = Math.max(nOfertas, nDemandas, 1); 
+
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const margen = 40;
+    const anchoBarra = 60;
+    const alturaMaxima = canvas.height - 80;
+
+    //Barra de Ofertas (Azul)
+    const altoOfertas = (nOfertas / maxVal) * alturaMaxima;
+    ctx.fillStyle = "#0d6efd";
+    ctx.fillRect(60, canvas.height - 40 - altoOfertas, anchoBarra, altoOfertas);
+    
+    //Barra de Demandas (Verde)
+    const altoDemandas = (nDemandas / maxVal) * alturaMaxima;
+    ctx.fillStyle = "#198754";
+    ctx.fillRect(180, canvas.height - 40 - altoDemandas, anchoBarra, altoDemandas);
+
+    //Etiquetas grafico
+    ctx.fillStyle = "#000";
+    ctx.font = "14px Montserrat";
+    ctx.fillText(`Ofertas (${nOfertas})`, 55, canvas.height - 20);
+    ctx.fillText(`Demandas (${nDemandas})`, 170, canvas.height - 20);
 }
-
-pintarPublicaciones();
