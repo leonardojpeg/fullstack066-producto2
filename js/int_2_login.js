@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const usuarioEncontrado = usuarios.find(
+        const usuarioEncontrado = Almacenaje.obtenerUsuarios().find(
             (u) => u.email === email && u.password === password
         );
 
